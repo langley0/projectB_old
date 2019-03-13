@@ -12,7 +12,9 @@ function initApp() {
   game.init(canvas);
 
   app.setGame(game);
-  return app;
+
+  // 플레이 버튼을 누르면 시작하게 해야 하지만... 일단은 그냥하자
+  app.start("TEST");
 }
 
 initApp();

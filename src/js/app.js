@@ -3,4 +3,14 @@ export default class App {
     setGame(game) {
         this.game = game;
     }
+
+    center() {
+        window.scrollTo(0, 1);
+    }
+
+    start(username) {
+        // set option 
+        this.center();
+        this.game.run();
+    }
 }

@@ -17,15 +17,6 @@ export default class Game {
         this.scene = scene;
 
         //===========================
-        // game 밖으로 업데이트 코드를 분리한다
-        const self = this;
-        const animate = function () {
-            requestAnimationFrame( animate );
-            self.render();
-        };
-        animate();
-
-        //===========================
         // 테스트 코드이다.
         const map = {
             width : 11,
@@ -42,8 +33,53 @@ export default class Game {
         scene.add( plane  );
     }
 
-    render() {
-        this.renderer.render( this.scene, this.camera );
+    tick() {
+        this.currentTime = new Date().getTime();
 
+        // 렌더러 업데이트
+        this.renderer.render( this.scene, this.camera );
+        
+        if (!this.isStopped) {
+            requestAnimationFrame(this.tick.bind(this));
+        }
+    }
+
+    start() {
+        this.tick();
+    }
+
+    stop() {
+        this.isStopped = true;
+    }
+
+    run(username) {
+        // 리소스를 로딩하고 끝날때까지 기다린다.
+        // 리소스 로딩이 끝나면 서버에 접속한다
+        // 접속이 완료되면 핸들러들을 연결하고 게임을 시작한다
+        this.player = new Player(1, username, "");
+        this.start();   
+    }
+
+    loadResource() {
+        const spriteNames = ["clotharmor", "sword1"];
+        const sprites = {};
+        for (const spName of spriteNames) {
+            const img = new Image();
+            img.src = `static/${spName}.png`;
+            img.onload = function() {
+                img.isLoaded = true;
+            }
+
+            sprites[spName] = img;
+        }
+
+        this.sprites = sprites;
+
+    }
+
+    isSpritesLoaded() {
+        if (__.any()) {
+            
+        }
     }
 }
