@@ -1,9 +1,7 @@
-import * as _ from 'underscore';
 import Player from './player';
 import Updater from './updater';
 import Map from './map';
 import Pathfinder from './pathfinder';
-const THREE = require('three');
 import OrbitControls  from 'three-orbitcontrols';
 
 
@@ -104,12 +102,13 @@ export default class Game {
                 const player = new Player(1, username, "");
                 player.setSprite(this.sprites["clotharmor"]);
                 player.onRequestPath((x, y) => {
-                    var ignored = [player]; // Always ignore self
-                    return this.findPath(player, x, y, ignored);
+                    const path = this.findPath(player, x, y);
+                    return path;
                 });
 
                 // TODO : 스타팅포인트를 정해야한다
-                player.setGridPosition(5, 5, this.map.tilesize);
+                player.setGridSize(this.map.tilesize);
+                player.setGridPosition(5, 5);
 
                 this.addEntity(player);
                 this.player = player;
@@ -197,27 +196,15 @@ export default class Game {
     }
 
    
-    findPath(character, x, y, ignoreList) {
+    findPath(character, x, y) {
         const path = [];
-        
         if(this.map.isColliding(x, y)) {
             // 해당 위치가 갈수 없는 곳이다
             return path;
         }
     
         if(this.pathfinder && character) {
-            if(ignoreList) {
-                _.each(ignoreList,(entity) => {
-                    this.pathfinder.ignoreEntity(entity);
-                });
-            }
-        
             const path = this.pathfinder.findPath(this.map.grid, character, x, y, false);
-
-            if(ignoreList) {
-                this.pathfinder.clearIgnoreList();
-            }
-
             return path;
         } 
         return [];

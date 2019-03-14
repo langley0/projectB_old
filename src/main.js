@@ -1,4 +1,3 @@
-import $ from "jquery";
 import App from './js/app';
 import Game from './js/game';
 

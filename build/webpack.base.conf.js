@@ -2,6 +2,7 @@
 const path = require('path')
 const utils = require('./utils')
 const config = require('../config')
+const webpack = require('webpack')
 
 
 function resolve (dir) {
@@ -72,5 +73,12 @@ module.exports = {
     net: 'empty',
     tls: 'empty',
     child_process: 'empty'
-  }
+  },
+  plugins: [
+    new webpack.ProvidePlugin({
+      _: 'underscore',
+      THREE: 'three',
+      $: 'jquery',
+    }),
+  ],
 }

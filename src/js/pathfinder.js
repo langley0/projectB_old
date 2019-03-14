@@ -1,4 +1,3 @@
-import * as _ from 'underscore';
 import AStar from '../lib/astar';
 
 export default class Pathfinder {
@@ -26,7 +25,6 @@ export default class Pathfinder {
         const end = [x, y];
 
         this.grid = grid;
-        this.applyIgnoreList_(true);
         let path = AStar(this.grid, start, end);
     
         if(path.length === 0 && findIncomplete === true) {
@@ -50,12 +48,12 @@ export default class Pathfinder {
      * @returns {Array} The incomplete path towards the end position
      */
     findIncompletePath_(start, end) {
-        var perfect, x, y,
+        let perfect, x, y,
             incomplete = [];
 
         perfect = AStar(this.blankGrid, start, end);
     
-        for(var i=perfect.length-1; i > 0; i -= 1) {
+        for(let i=perfect.length-1; i > 0; i -= 1) {
             x = perfect[i][0];
             y = perfect[i][1];
         
@@ -74,20 +72,6 @@ export default class Pathfinder {
         if(entity) {
             this.ignored.push(entity);
         }
-    }
-
-    applyIgnoreList_(ignored) {
-        var self = this,
-            x, y, g;
-
-        _.each(this.ignored, function(entity) {
-            x = entity.isMoving() ? entity.nextGridX : entity.gridX;
-            y = entity.isMoving() ? entity.nextGridY : entity.gridY;
-
-            if(x >= 0 && y >= 0) {
-                self.grid[y][x] = ignored ? 0 : 1;
-            }
-        });
     }
 
     clearIgnoreList() {

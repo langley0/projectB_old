@@ -1,4 +1,5 @@
 import Character from "./character";
+import Types from '../share/gametypes';
 
 export default class Updater {
     constructor(game) {
@@ -11,7 +12,7 @@ export default class Updater {
     }
 
     updateCharacters() {
-        this.game.forEachEntity(function(entity) {
+        this.game.forEachEntity((entity) => {
             const isCharacter = entity instanceof Character;
             if (isCharacter && entity.isLoaded) {
                 this.updateCharacter(entity);
@@ -20,8 +21,72 @@ export default class Updater {
     }
 
     updateCharacter(c) {
-        // 캐릭터의 위치를 
-
+        // 캐릭터의 이동 위치를 업데이트한다
+        const fps = 60;
+        const tick = Math.round(16 / Math.round((c.moveSpeed / (1000 / fps))));
+    
+        if(c.isMoving() && c.movement.inProgress === false) {
+            if(c.orientation === Types.Orientations.LEFT) {
+                c.movement.start(this.game.currentTime,
+                                function(x) {
+                                    c.x = x;
+                                    c.hasMoved();
+                                },
+                                function() {
+                                    c.x = c.movement.endValue;
+                                    c.hasMoved();
+                                    c.nextStep();
+                                },
+                                c.x - tick,
+                                c.x - 16,
+                                c.moveSpeed);
+            }
+            else if(c.orientation === Types.Orientations.RIGHT) {
+                c.movement.start(this.game.currentTime,
+                                function(x) {
+                                    c.x = x;
+                                    c.hasMoved();
+                                },
+                                function() {
+                                    c.x = c.movement.endValue;
+                                    c.hasMoved();
+                                    c.nextStep();
+                                },
+                                c.x + tick,
+                                c.x + 16,
+                                c.moveSpeed);
+            }
+            else if(c.orientation === Types.Orientations.UP) {
+                c.movement.start(this.game.currentTime,
+                                function(y) {
+                                    c.y = y;
+                                    c.hasMoved();
+                                },
+                                function() {
+                                    c.y = c.movement.endValue;
+                                    c.hasMoved();
+                                    c.nextStep();
+                                },
+                                c.y - tick,
+                                c.y - 16,
+                                c.moveSpeed);
+            }
+            else if(c.orientation === Types.Orientations.DOWN) {
+                c.movement.start(this.game.currentTime,
+                                function(y) {
+                                    c.y = y;
+                                    c.hasMoved();
+                                },
+                                function() {
+                                    c.y = c.movement.endValue;
+                                    c.hasMoved();
+                                    c.nextStep();
+                                },
+                                c.y + tick,
+                                c.y + 16,
+                                c.moveSpeed);
+            }
+        }
     }
 
     updateTransitions() {

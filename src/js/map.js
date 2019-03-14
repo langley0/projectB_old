@@ -36,9 +36,9 @@ export default class Map {
             }
         }
 
-        _.each(this.collisions, function(tileIndex) {
+        _.each(this.collisions, (tileIndex) => {
             const pos = this.tileIndexToGridPosition(tileIndex+1);
-            self.grid[pos.y][pos.x] = 1;
+            this.grid[pos.y][pos.x] = 1;
         });
     }
 

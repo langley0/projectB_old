@@ -2,6 +2,11 @@ export default class Entity {
     constructor(id, kind) {
         this.id = id;
         this.kind = kind;
+        this.isLoaded = false;
+    }
+
+    setGridSize(size) {
+        this.gridSize = size;
     }
 
     setPosition(x, y) {
@@ -9,10 +14,10 @@ export default class Entity {
         this.y = y;
     }
 
-    setGridPosition(x, y, gridSize) {
+    setGridPosition(x, y) {
         this.gridX = x;
         this.gridY = y;
     
-        this.setPosition(x * gridSize, y * gridSize);
+        this.setPosition(x * this.gridSize, y * this.gridSize);
     }
 }

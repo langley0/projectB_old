@@ -1,4 +1,3 @@
-const THREE = require('../lib/three').THREE;
 import voxel from '../lib/voxel';
 import Entity from './entity';
 import Transition from './transition';
@@ -10,12 +9,23 @@ export default class Character extends Entity{
         // position 
 
         // stat
-
+        
         // position moving
+        this.nextGridX = -1;
+    	this.nextGridY = -1;
         this.orientation = Types.Orientations.DOWN;
+
         this.movement = new Transition();
         this.path = null;
+        this.newDestination = null;
+    	this.adjacentTiles = {};
 
+        // animation speed
+        this.moveSpeed = 120;
+        this.walkSpeed = 100;
+        this.idleSpeed = 450;
+
+      
         // combat 
 
         // build mesh
@@ -27,6 +37,7 @@ export default class Character extends Entity{
     setSprite(sprite) {
         this.sprite = sprite;
         this.buildMesh();
+        this.isLoaded = true;
     }
 
     getFramePixelData() {
@@ -116,7 +127,7 @@ export default class Character extends Entity{
         if(this.request_path_callback) {
             return this.request_path_callback(x, y);
         } else {
-            return [];
+            return [];  
         }
     }
 
@@ -126,6 +137,36 @@ export default class Character extends Entity{
 
     isMoving() {
         return !(this.path === null);
+    }
+
+    hasMoved() {
+        if(this.hasmoved_callback) {
+            this.hasmoved_callback(this);
+        }
+    }
+
+    hasNextStep() {
+        return (this.path.length - 1 > this.step);
+    }
+
+    hasChangedItsPath() {
+        return !(this.newDestination === null);
+    }
+
+    setOrientation(orientation) {
+        if(orientation) {
+            this.orientation = orientation;
+        }
+    }
+
+    idle(orientation) {
+        this.setOrientation(orientation);
+        //this.animate("idle", this.idleSpeed);
+    }
+
+    walk(orientation) {
+        this.setOrientation(orientation);
+        //this.animate("walk", this.walkSpeed);
     }
 
     go(x, y) {
@@ -140,18 +181,38 @@ export default class Character extends Entity{
         }
     }
 
+    stop() {
+        if(this.isMoving()) {
+            this.interrupted = true;
+        }
+    }
+
     continueTo(x, y) {
         this.newDestination = { x: x, y: y };
+    }
+
+    updateMovement() {
+        const p = this.path;
+        const i = this.step;
+    
+        if(p[i][0] < p[i-1][0]) {
+            this.walk(Types.Orientations.LEFT);
+        }
+        if(p[i][0] > p[i-1][0]) {
+            this.walk(Types.Orientations.RIGHT);
+        }
+        if(p[i][1] < p[i-1][1]) {
+            this.walk(Types.Orientations.UP);
+        }
+        if(p[i][1] > p[i-1][1]) {
+            this.walk(Types.Orientations.DOWN);
+        }
     }
 
     followPath(path) {
         if(path.length > 1) { // Length of 1 means the player has clicked on himself
             this.path = path;
             this.step = 0;
-        
-            if(this.followingMode) { // following a character
-                path.pop();
-            }
         
             if(this.start_pathing_callback) {
                 this.start_pathing_callback(path);
@@ -160,22 +221,20 @@ export default class Character extends Entity{
         }
     }
 
-    nextStep: function() {
-        var stop = false,
-            x, y, path;
-    
+    nextStep() {
+        let stop = false;
+        
         if(this.isMoving()) {
             if(this.before_step_callback) {
                 this.before_step_callback();
             }
         
             this.updatePositionOnGrid();
-            this.checkAggro();
-        
+           
             if(this.interrupted) { // if Character.stop() has been called
                 stop = true;
                 this.interrupted = false;
-            }
+            } 
             else {
                 if(this.hasNextStep()) {
                     this.nextGridX = this.path[this.step+1][0];
@@ -187,9 +246,9 @@ export default class Character extends Entity{
                 }
             
                 if(this.hasChangedItsPath()) {
-                    x = this.newDestination.x;
-                    y = this.newDestination.y;
-                    path = this.requestPathfindingTo(x, y);
+                    const x = this.newDestination.x;
+                    const y = this.newDestination.y;
+                    const path = this.requestPathfindingTo(x, y);
             
                     this.newDestination = null;
                     if(path.length < 2) {
@@ -217,5 +276,9 @@ export default class Character extends Entity{
                 }
             }
         }
+    }
+
+    updatePositionOnGrid() {
+        this.setGridPosition(this.path[this.step][0], this.path[this.step][1]);
     }
 }
