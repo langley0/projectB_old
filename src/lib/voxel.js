@@ -160,4 +160,6 @@ var Voxel = function (lo, hi, fn) {
     return mesher(data, dims);
 }
 
-  
+export default {
+  build : Voxel,
+} 

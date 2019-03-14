@@ -1,7 +1,10 @@
-export default class Player {
+import Character from './character';
+
+export default class Player extends Character{
+
     constructor(id, name, kind) {
-        this.id = id;
+        super(id, kind);
+
         this.name = name;
-        this.kind = kind;
     }
 }
