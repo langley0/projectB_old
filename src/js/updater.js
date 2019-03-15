@@ -7,16 +7,17 @@ export default class Updater {
     }
 
     update() {
-        this.updateCharacters();
+        this.updateEntities();
         this.updateTransitions();
     }
 
-    updateCharacters() {
+    updateEntities() {
         this.game.forEachEntity((entity) => {
             const isCharacter = entity instanceof Character;
             if (isCharacter && entity.isLoaded) {
                 this.updateCharacter(entity);
             }
+            this.updateEntityFading(entity);
         });
     }
 
@@ -113,5 +114,20 @@ export default class Updater {
                 //console.log(entity.mesh.position, offsetY, entity.y, entity.offset.y, entity.gridX, entity.gridY );
             }
         })
+    }
+
+    updateEntityFading(entity) {
+        if(entity && entity.isFading) {
+            const duration = 1000;
+            const t = this.game.currentTime;
+            const dt = t - entity.startFadingTime;
+        
+            if(dt > duration) {
+                this.isFading = false;
+                entity.fadingAlpha = 1;
+            } else {
+                entity.fadingAlpha = dt / duration;
+            }
+        }
     }
 }

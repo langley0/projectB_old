@@ -34,7 +34,7 @@ export default class Game {
         }
 
         const geometry = new THREE.PlaneBufferGeometry(map.width * map.tileSize, map.height * map.tileSize, map.width, map.height );
-        const material = new THREE.MeshLambertMaterial( { color: 0x405040 } );
+        const material = new THREE.MeshStandardMaterial( { color: 0x405040, roughness: 0.75 } );
         const plane  = new THREE.Mesh( geometry, material );
         plane.rotation.order = 'YXZ';
         plane.rotation.x = -Math.PI/2;
@@ -104,7 +104,7 @@ export default class Game {
                 // 월드 라이트를 추가
                 // TODO : map에 따라서 라이트를 바꾸어야 한다
                 // 헤미스피어를 붙인다
-                const hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 1 );
+                const hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.5 );
                 hemiLight.color.setHSL( 0.6, 1, 0.6 );
                 hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
                 hemiLight.position.set( 0, 50, 0 );
@@ -148,19 +148,22 @@ export default class Game {
                     }
                 });
 
-
-                // TODO : 스타팅포인트를 정해야한다
+                // TODO : 화면에 배치하고 보이지 않게 하여야 한다
                 player.setGridSize(this.map.tilesize);
-                player.setGridPosition(5, 3);
-
+                player.setGridPosition(0, 0);
                 this.addEntity(player);
                 this.player = player;
+
+                // 게임 씬 페이즈를 선언한다.
+                // 등장컷신 -> 전투 -> (승리컷신) -> 탐험 -> 퇴장컷신 . 순으로 만들어진다.
+                // 등장 컷신 
+
+
 
 
                 // 월드에 추가를 한다
                 // TODO : entity 를 일괄로 처리할 수 있는 장치가 필요하다?>
                 this.scene.add(this.player.mesh);
-
                 this.start();
             }
         }, 100);
