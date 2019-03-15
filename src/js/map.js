@@ -25,6 +25,7 @@ export default class Map {
         this.data = map.data;
         this.tilesize = map.tilesize;
         this.collisions = map.collisions;
+        this.props = map.props;
     }
 
     _generateCollisionGrid() {

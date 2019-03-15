@@ -1,4 +1,6 @@
-
+import Types from '../share/gametypes';
+import Prop from './prop';
+import Chest from './chest';
 
 class EntityFactory {
     static builders = [];
@@ -15,5 +17,15 @@ class EntityFactory {
         return EntityFactory.builders[kind](id, name);
     };
 }
+
+EntityFactory.builders[Types.Entities.CHEST] = function(id) {
+    return new Chest(id);
+};
+
+EntityFactory.builders[Types.Entities.FIRE] = function(id) {
+    const prop= new Prop(id, Types.Entities.FIRE);
+    prop.attachPointLight(0xffc0a0, 1, 128);
+    return prop;
+};
 
 export default EntityFactory;

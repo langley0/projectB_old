@@ -107,6 +107,7 @@ export default class Character extends Entity{
 
             const mesh	= new THREE.Mesh( geometry, material );
             mesh.doubleSided = false;
+            mesh.castShadow = true;
 
             // 바운딩 박스의 중앙으로 좌표를 옮긴다
             const min = geometry.boundingBox.min;
@@ -133,6 +134,22 @@ export default class Character extends Entity{
 
     onRequestPath(callback) {
         this.request_path_callback = callback;
+    }
+
+    onStartPathing(callback) {
+        this.start_pathing_callback = callback;
+    }
+
+    onStopPathing(callback) {
+        this.stop_pathing_callback = callback;
+    }
+
+    onBeforeStep(callback) {
+        this.before_step_callback = callback;
+    }
+
+    onStep(callback) {
+        this.step_callback = callback;
     }
 
     isMoving() {
@@ -170,8 +187,23 @@ export default class Character extends Entity{
     }
 
     go(x, y) {
+        if(this.followingMode) {
+            this.followingMode = false;
+            this.target = null;
+        }
+        this.moveTo(x, y);
+    }
+
+    follow(entity) {
+        if(entity) {
+            this.followingMode = true;
+            this.moveTo(entity.gridX, entity.gridY);
+        }
+    }
+
+    moveTo(x, y) {
         this.destination = { gridX: x, gridY: y };
-            
+
         if(this.isMoving()) {
             this.continueTo(x, y);
         } else {
@@ -213,6 +245,11 @@ export default class Character extends Entity{
         if(path.length > 1) { // Length of 1 means the player has clicked on himself
             this.path = path;
             this.step = 0;
+
+            if(this.followingMode) {
+                // 오브젝트를 향해 갈때는 제일 마지막 위치가 해당 오브젝트가 있는 위치이기 직전에서 멈추도록 한다
+                path.pop();
+            }
         
             if(this.start_pathing_callback) {
                 this.start_pathing_callback(path);
@@ -280,5 +317,11 @@ export default class Character extends Entity{
 
     updatePositionOnGrid() {
         this.setGridPosition(this.path[this.step][0], this.path[this.step][1]);
+    }
+
+    setTarget(target) {
+        if(this.target !== target) { // If it's not already set as the target
+            this.target = target;
+        }
     }
 }

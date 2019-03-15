@@ -2,7 +2,10 @@ import Player from './player';
 import Updater from './updater';
 import Map from './map';
 import Pathfinder from './pathfinder';
+import EntityFactory from './entityfactory';
+
 import OrbitControls  from 'three-orbitcontrols';
+import Chest from './chest';
 
 
 
@@ -31,7 +34,7 @@ export default class Game {
         }
 
         const geometry = new THREE.PlaneBufferGeometry(map.width * map.tileSize, map.height * map.tileSize, map.width, map.height );
-        const material = new THREE.MeshBasicMaterial( { color: 0x405040 } );
+        const material = new THREE.MeshLambertMaterial( { color: 0x405040 } );
         const plane  = new THREE.Mesh( geometry, material );
         plane.rotation.order = 'YXZ';
         plane.rotation.x = -Math.PI/2;
@@ -41,26 +44,17 @@ export default class Game {
         // 월드용 오프셋을 기록한다
         
 
-        scene.add( plane );
+        //scene.add( plane );
 
         this._terrain = plane;
-
-        // TODO : mad에 따라서 라이트를 바꾸어야 한다
-        // 헤미스피어를 붙인다
-        const hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 1 );
-        hemiLight.color.setHSL( 0.6, 1, 0.6 );
-        hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
-        hemiLight.position.set( 0, 50, 0 );
-        scene.add( hemiLight );
 
         // TODO : 카메라 시선을 플레이어에 맞추어야 한다
         camera.lookAt(new THREE.Vector3(0, 0, 0));
         new OrbitControls(camera, renderer.domElement)
-        
-
 
         // 게임 정보
         this.entities = {};
+        this.entityGrid = null;
     }
 
     tick() {
@@ -97,8 +91,44 @@ export default class Game {
                 // 접속이 완료되면 핸들러들을 연결하고 게임을 시작한다
                 // TODO : 서버 접속을 만들어야 한다
 
+                // 월드를 생성한다
+                // TODO : terrain 생성코드를 나중에 여기로 옮겨와야 한다
+                while (this.scene.children.length > 0) {
+                    this.scene.remove(this.scene.children[0]);
+                }
+                // 맵을 초기화한다
+                // TODO: 맵을 여기서 초기화하도록 코드를 옮겨야 한다
+                this.scene.add(this._terrain);
+                this.initEntityGrid();
+
+                // 월드 라이트를 추가
+                // TODO : map에 따라서 라이트를 바꾸어야 한다
+                // 헤미스피어를 붙인다
+                const hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 1 );
+                hemiLight.color.setHSL( 0.6, 1, 0.6 );
+                hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
+                hemiLight.position.set( 0, 50, 0 );
+                this.scene.add( hemiLight );
+
+                
+                // 프랍을 배치한다
+                let id = 2;
+                for(const propData of this.map.props) {
+                    const propEntity = EntityFactory.createEntity(propData.kind, id++, "");
+                    // 배치할 좌표를 계산한다
+                    propEntity.setGridSize(this.map.tilesize);
+                    propEntity.setGridPosition(propData.x, propData.y);
+                    
+                    
+                    this.addEntity(propEntity);
+                    this.scene.add(propEntity.mesh);
+                }
+
+
                 this.pathfinder = new Pathfinder(this.map.width, this.map.height)
 
+
+                // 플레이어를 선언한다
                 const player = new Player(1, username, "");
                 player.setSprite(this.sprites["clotharmor"]);
                 player.onRequestPath((x, y) => {
@@ -106,9 +136,22 @@ export default class Game {
                     return path;
                 });
 
+                player.onStopPathing((x, y) => {
+                    if(player.target instanceof Chest) {
+                        // 다음 프레임에 상자를 제거해버린다. 
+                        // TODO : 이것도 좀 영리하게 만들수 없을까?
+                        requestAnimationFrame(() => {
+                            this.removeEntity(player.target);
+                            this.scene.remove(player.target.mesh);
+                            player.target = null;
+                        });
+                    }
+                });
+
+
                 // TODO : 스타팅포인트를 정해야한다
                 player.setGridSize(this.map.tilesize);
-                player.setGridPosition(5, 5);
+                player.setGridPosition(5, 3);
 
                 this.addEntity(player);
                 this.player = player;
@@ -156,10 +199,63 @@ export default class Game {
         return true;
     }
 
+    initEntityGrid() {
+        this.entityGrid = [];
+        for(let i=0; i < this.map.height; i += 1) {
+            this.entityGrid[i] = [];
+            for(let j=0; j < this.map.width; j += 1) {
+                this.entityGrid[i][j] = {};
+            }
+        }
+    }
+
     addEntity(entity) {
         if(this.entities[entity.id] === undefined) {
             this.entities[entity.id] = entity;
+            this.registerEntityPosition(entity);
         }
+    }
+
+    removeEntity(entity) {
+        if(entity.id in this.entities) {
+            this.unregisterEntityPosition(entity);
+            delete this.entities[entity.id];
+        }
+    }
+  
+    registerEntityPosition(entity) {
+        const x = entity.gridX;
+        const y = entity.gridY;
+    
+        this.entityGrid[y][x][entity.id] = entity;
+    }
+
+    unregisterEntityPosition(entity) {
+        const x = entity.gridX;
+        const y = entity.gridY;
+
+        if(this.entityGrid[y][x][entity.id]) {
+            delete this.entityGrid[y][x][entity.id];
+        }
+    }
+
+    getEntityAt(x, y) {
+        if(this.map.isOutOfBounds(x, y) || !this.entityGrid) {
+            return null;
+        }
+        
+        const entities = this.entityGrid[y][x];
+        let entity = null;
+        if(_.size(entities) > 0) {
+            entity = entities[_.keys(entities)[0]];
+        } else {
+            // entity = this.getItemAt(x, y);
+        }
+        return entity;
+    }
+
+    getItemAt(x, y) {
+        return null;
     }
 
     getGridPosition(intersect, boundingbox) {
@@ -184,8 +280,17 @@ export default class Game {
         const intersects = raycaster.intersectObjects(this.scene.children);
         for ( const inter of intersects) {
             const pos = this.getGridPosition(inter.point, this._terrain.geometry.boundingBox);
-            // 해당 위치로 플레이어를 이동시킨다
-            this.player.go(pos.x, pos.y);
+
+            // 이제 여기서 무엇을 클릭했는지 조사한다
+            const entity = this.getEntityAt(pos.x, pos.y);
+            if (entity instanceof Chest) {
+                // 상자를 향해  이동한다
+                this.player.setTarget(entity);
+                this.player.follow(entity);
+            } else {
+                // 해당 위치로 플레이어를 이동시킨다
+                this.player.go(pos.x, pos.y);
+            }
         }
     }
 
