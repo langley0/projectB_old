@@ -6,7 +6,7 @@ import EntityFactory from './entityfactory';
 
 import OrbitControls  from 'three-orbitcontrols';
 import Chest from './chest';
-
+import Cutscene from './cutscene';
 
 
 export default class Game {
@@ -55,6 +55,8 @@ export default class Game {
         // 게임 정보
         this.entities = {};
         this.entityGrid = null;
+        this.phase = null;
+        this.nextPhase = null;
     }
 
     tick() {
@@ -138,28 +140,29 @@ export default class Game {
 
                 player.onStopPathing((x, y) => {
                     if(player.target instanceof Chest) {
+                        const chest = player.target;
+                        player.target = null;
                         // 다음 프레임에 상자를 제거해버린다. 
                         // TODO : 이것도 좀 영리하게 만들수 없을까?
                         requestAnimationFrame(() => {
-                            this.removeEntity(player.target);
-                            this.scene.remove(player.target.mesh);
-                            player.target = null;
+                            this.removeEntity(chest);
+                            this.scene.remove(chest.mesh);
+                            
                         });
                     }
                 });
 
                 // TODO : 화면에 배치하고 보이지 않게 하여야 한다
                 player.setGridSize(this.map.tilesize);
-                player.setGridPosition(0, 0);
+                player.setGridPosition(3, 3);
                 this.addEntity(player);
+                this.unregisterEntityPosition(player); // 플레이어를 엔티티에 포함시키지않기위한 특수처리
                 this.player = player;
 
                 // 게임 씬 페이즈를 선언한다.
                 // 등장컷신 -> 전투 -> (승리컷신) -> 탐험 -> 퇴장컷신 . 순으로 만들어진다.
                 // 등장 컷신 
-
-
-
+                this.nextPhase = new Cutscene(this, "enter");
 
                 // 월드에 추가를 한다
                 // TODO : entity 를 일괄로 처리할 수 있는 장치가 필요하다?>

@@ -9,6 +9,7 @@ export default class Updater {
     update() {
         this.updateEntities();
         this.updateTransitions();
+        this.updatePhase();
     }
 
     updateEntities() {
@@ -123,11 +124,37 @@ export default class Updater {
             const dt = t - entity.startFadingTime;
         
             if(dt > duration) {
-                this.isFading = false;
-                entity.fadingAlpha = 1;
+                entity.isFading = false;
+                if (entity.mesh) {
+                    entity.mesh.material.opacity = 1;
+                    entity.mesh.material.transparent = false;
+                }
+
             } else {
-                entity.fadingAlpha = dt / duration;
+                if (entity.mesh) {
+                    entity.mesh.material.transparent = true;
+                    entity.mesh.material.opacity = dt / duration;
+                }
             }
+        }
+    }
+
+    updatePhase() {
+        if (this.game.nextPhase) {
+            if (this.game.phase) {
+                // 끝내고 다시 시작한다
+                this.game.phase.end();
+                this.game.phase = null;
+            } else {
+                this.game.phase = this.game.nextPhase;
+                this.game.nextPhase = null;
+
+                this.game.phase.begin();
+            }
+        }
+        
+        if (this.game.phase) {
+            this.game.phase.update();
         }
     }
 }

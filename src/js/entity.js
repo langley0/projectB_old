@@ -20,4 +20,9 @@ export default class Entity {
     
         this.setPosition(x * this.gridSize, y * this.gridSize);
     }
+
+    fadeIn(currentTime) {
+        this.isFading = true;
+        this.startFadingTime = currentTime;
+    }
 }
