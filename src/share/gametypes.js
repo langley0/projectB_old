@@ -9,6 +9,16 @@ export default {
     Entities: {
         PLAYER: 1,
         FIRE: 2,
-        CHEST: 3
+        CHEST: 3,
+
+        DEATHKNIGHT:4,
+    },
+
+    BattleState: {
+        BEGIN: 1,
+        MAIN: 2,
+        END: 3,
     }
 }
+
+// 나중에 숫자랑 다 정리하자. 지금은 필요한대로 추가

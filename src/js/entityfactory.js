@@ -1,6 +1,7 @@
 import Types from '../share/gametypes';
 import Prop from './prop';
 import Chest from './chest';
+import Character from './character';
 
 class EntityFactory {
     static builders = [];
@@ -13,10 +14,14 @@ class EntityFactory {
         if(!_.isFunction(EntityFactory.builders[kind])) {
             throw Error(kind + " is not a valid Entity type");
         }
-    
         return EntityFactory.builders[kind](id, name);
     };
 }
+
+EntityFactory.builders[Types.Entities.DEATHKNIGHT] = function(id) {
+    const entity = new Character(id, Types.Entities.DEATHKNIGHT);
+    return entity;
+};
 
 EntityFactory.builders[Types.Entities.CHEST] = function(id) {
     return new Chest(id);

@@ -111,8 +111,6 @@ export default class Updater {
                     offsetX + entity.x + entity.offset.x , 
                     offsetY + entity.offset.y, 
                     offsetZ + entity.y + entity.offset.z);
-
-                //console.log(entity.mesh.position, offsetY, entity.y, entity.offset.y, entity.gridX, entity.gridY );
             }
         })
     }

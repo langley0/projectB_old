@@ -5,8 +5,8 @@ export default class Entity {
         this.isLoaded = false;
     }
 
-    setGridSize(size) {
-        this.gridSize = size;
+    static setGridSize(size) {
+        Entity.gridSize = size;
     }
 
     setPosition(x, y) {
@@ -18,7 +18,7 @@ export default class Entity {
         this.gridX = x;
         this.gridY = y;
     
-        this.setPosition(x * this.gridSize, y * this.gridSize);
+        this.setPosition(x * Entity.gridSize, y * Entity.gridSize);
     }
 
     fadeIn(currentTime) {

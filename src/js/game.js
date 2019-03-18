@@ -2,28 +2,38 @@ import Player from './player';
 import Updater from './updater';
 import Map from './map';
 import Pathfinder from './pathfinder';
+import Entity from './entity';
 import EntityFactory from './entityfactory';
+import GLTFLoader from './gltfloader';
 
 import OrbitControls  from 'three-orbitcontrols';
 import Chest from './chest';
 import Cutscene from './cutscene';
+
+import ThreeUI from '../lib/three-ui/ThreeUI';
 
 
 export default class Game {
     init(canvas) {
         const scene = new THREE.Scene();
 
-        const camera = new THREE.PerspectiveCamera( 45, canvas.width / canvas.height, 1, 1000 );
+        const camera = new THREE.PerspectiveCamera( 30, canvas.width / canvas.height, 1, 1000 );
         camera.position.set( 0, 100, 250 );
+
+        const width = canvas.width;
+        const height = canvas.height;
 
         const renderer = new THREE.WebGLRenderer({canvas: canvas});
         renderer.shadowMap.enabled = true;
         renderer.setPixelRatio( window.devicePixelRatio );
-        renderer.setSize( canvas.width, canvas.height );
+        renderer.setSize( width, height);
+
+        const ui = new ThreeUI(canvas, height);
 
         this.renderer = renderer;
         this.camera = camera;
         this.scene = scene;
+        this.ui = ui;
 
         //===========================
         // 테스트 코드이다.
@@ -64,6 +74,7 @@ export default class Game {
 
         // 로직 -> 렌더링 순서로 업데이트를 한다
         this.updater.update();
+        this.ui.render();
         this.renderer.render( this.scene, this.camera );
         
         if (!this.isStopped) {
@@ -83,10 +94,11 @@ export default class Game {
         // 리소스를 로딩하고 끝날때까지 기다린다.
         this.loadSprites();
         this.loadMap();
+        this.loadModel();
         this.updater = new Updater(this);
 
         const wait = setInterval(() => {
-            if (this.map.isLoaded && this.isSpritesLoaded()) {
+            if (this.map.isLoaded && this.isSpritesLoaded() && this.model) {
                 clearInterval(wait);
 
                 // 리소스 로딩이 끝나면 서버에 접속한다
@@ -102,11 +114,12 @@ export default class Game {
                 // TODO: 맵을 여기서 초기화하도록 코드를 옮겨야 한다
                 this.scene.add(this._terrain);
                 this.initEntityGrid();
+                Entity.setGridSize(this.map.tilesize);
 
                 // 월드 라이트를 추가
                 // TODO : map에 따라서 라이트를 바꾸어야 한다
                 // 헤미스피어를 붙인다
-                const hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.5 );
+                const hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 1 );
                 hemiLight.color.setHSL( 0.6, 1, 0.6 );
                 hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
                 hemiLight.position.set( 0, 50, 0 );
@@ -118,9 +131,12 @@ export default class Game {
                 for(const propData of this.map.props) {
                     const propEntity = EntityFactory.createEntity(propData.kind, id++, "");
                     // 배치할 좌표를 계산한다
-                    propEntity.setGridSize(this.map.tilesize);
                     propEntity.setGridPosition(propData.x, propData.y);
                     
+                    if (propEntity instanceof Chest) {
+                        propEntity.mesh = this.model.scene.children[3].clone();
+                        propEntity.mesh.scale.set(3, 3, 3);
+                    }
                     
                     this.addEntity(propEntity);
                     this.scene.add(propEntity.mesh);
@@ -153,7 +169,6 @@ export default class Game {
                 });
 
                 // TODO : 화면에 배치하고 보이지 않게 하여야 한다
-                player.setGridSize(this.map.tilesize);
                 player.setGridPosition(3, 3);
                 this.addEntity(player);
                 this.unregisterEntityPosition(player); // 플레이어를 엔티티에 포함시키지않기위한 특수처리
@@ -174,7 +189,7 @@ export default class Game {
     }
 
     loadSprites() {
-        const spriteNames = ["clotharmor", "sword1"];
+        const spriteNames = ["clotharmor", "sword1", "deathknight"];
         const sprites = {};
         for (const spName of spriteNames) {
             const img = new Image();
@@ -196,6 +211,18 @@ export default class Game {
             x: this._terrain.geometry.boundingBox.min.x,
             y: this._terrain.geometry.boundingBox.min.y
         };
+    }
+
+    loadModel() {
+        //const modelNames = ["treasure"];
+        var loader = new GLTFLoader();
+        loader.load("static/treasure.glb", (glb) => {
+            this.model = glb; // 임시 코드... 모델을 어떻게 관리할까?
+        },undefined, function ( error ) {
+
+            console.error( error );
+        
+        });
     }
 
     isSpritesLoaded() {
@@ -273,6 +300,17 @@ export default class Game {
     }
 
     click(x, y) {
+        if (this.ui) {
+            const result = this.ui.clickHandler(x, y);
+            if (result) {
+                return;
+            }
+        }
+
+        if (this.phase) {
+            this.phase.click(x, y);
+        }
+
         const size = new THREE.Vector2();
         this.renderer.getSize(size);
 

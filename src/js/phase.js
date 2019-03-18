@@ -12,6 +12,12 @@ export default class Phase {
         }
     }
 
+    click(x, y) {
+        if (this.click_callback) {
+            this.click_callback(x, y);
+        }
+    }
+
     onBegin(callback) {
         this.begin_callback = callback;
     }
