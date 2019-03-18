@@ -112,6 +112,34 @@ export default class Updater {
                     offsetY + entity.offset.y, 
                     offsetZ + entity.y + entity.offset.z);
             }
+
+            // 쉐터 박스를 테스트 한다
+            if (entity.shatters) {
+                for (const block of entity.shatters) {
+                    if (!block._pos_init) {
+                        block.position.x += entity.mesh.position.x;
+                        block.position.z += entity.mesh.position.z;
+                        block._pos_init = true;
+
+                        block.shatterTick = Math.random() * 100;
+                    }
+               
+                    const d = 1;
+                    --block.shatterTick;
+                    if (block.shatterTick < 0) {
+
+                        if (Math.abs(entity.mesh.position.x - block.position.x) < d) { block.position.x = entity.mesh.position.x; }
+                        else { block.position.x += d/(entity.mesh.position.x - block.position.x); }
+
+                        if (Math.abs(entity.mesh.position.y - block.position.y) < d*3) { block.position.y = entity.mesh.position.y; }
+                        else { block.position.y += d*3/(entity.mesh.position.y - block.position.y); }
+
+                        if (Math.abs(entity.mesh.position.z - block.position.z) < d) { block.position.z = entity.mesh.position.z; }
+                        else { block.position.z += d/(entity.mesh.position.z - block.position.z); }
+                    }
+
+                }
+            }
         })
     }
 

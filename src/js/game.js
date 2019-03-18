@@ -181,8 +181,14 @@ export default class Game {
 
                 // 월드에 추가를 한다
                 // TODO : entity 를 일괄로 처리할 수 있는 장치가 필요하다?>
-                this.scene.add(this.player.mesh);
+                //this.scene.add(this.player.mesh);
                 this.start();
+
+                // 테스트 코드
+                for (const block of player.shatters) {
+                   
+                    this.scene.add(block)
+                }
             }
         }, 100);
 

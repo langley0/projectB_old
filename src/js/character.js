@@ -121,6 +121,62 @@ export default class Character extends Entity{
             }
             
             this.mesh = mesh;
+
+            // 쉐터링 객체를 만든다
+            const cubeData = voxel.buildCube([0,0,0], [data.width,data.height,1], function(x, y, z) {
+                const p = (x + y*data.width)*4;
+                const r = data.data[p + 0];
+                const g = data.data[p + 1];
+                const b = data.data[p + 2];
+                const a = data.data[p + 3];
+                
+                return a === 255 ? (r << 16) + (g << 8) + b : 0;
+            });
+
+            const shatters = [];
+            const _material = material.clone();
+            for (let j = 0; j < (cubeData.vertices.length/24); ++j) {
+                
+                const result = cubeData;
+                const voffset = j*24;
+                const geometry = new THREE.Geometry(); 
+                for(let i=0; i<24; ++i) {
+                   
+                    const q = result.vertices[i + voffset];
+                    geometry.vertices.push(new THREE.Vector3(q[0], q[1], q[2]));
+                }
+                for(let i=0; i< 6; ++i) {
+                    const offset = j*6;
+                    const q = result.faces[i + offset];
+                    const color = new THREE.Color(q[4]);
+    
+                    const f1 = new THREE.Face3(q[0]-voffset, q[1]-voffset, q[2]-voffset);
+                    f1.color = color;
+                    f1.vertexColors = [color, color,color];
+                    geometry.faces.push(f1);
+    
+                    const f2 = new THREE.Face3(q[2]-voffset, q[3]-voffset, q[0]-voffset);
+                    f2.color = color;
+                    f2.vertexColors = [color, color,color];
+                    geometry.faces.push(f2);
+
+                    
+                }
+                geometry.computeFaceNormals();
+                geometry.computeBoundingBox();
+                
+                const mesh	= new THREE.Mesh( geometry, _material );
+                mesh.castShadow = true;
+                shatters.push(mesh);
+
+                // 포지션을 반경 5 에 적절히 흩어놓자
+                const v = Math.random() * Math.PI * 2;
+                const r = Math.random() * 12;
+                mesh.position.set(r * Math.cos(v), -geometry.boundingBox.min.y,  r * Math.sin(v));
+                this.shatters = shatters;
+            }
+
+            
         }
     }
 

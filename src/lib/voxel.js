@@ -135,31 +135,50 @@ function mesher2(volume, dims) {
         vertices.push([t[0]+u[0],      t[1]+u[1],      t[2]+u[2]     ]);
         vertices.push([t[0]+u[0]+v[0], t[1]+u[1]+v[1], t[2]+u[2]+v[2]]);
         vertices.push([t[0]     +v[0], t[1]     +v[1], t[2]     +v[2]]);
-        faces.push([vertex_count, vertex_count+1, vertex_count+2, vertex_count+3, volume[n]]);
+        faces.push([vertex_count+0, vertex_count+1, vertex_count+2, vertex_count+3, volume[n]]);
       }
- 
     }
   }
   return { vertices:vertices, faces:faces };
 }
 
 var Voxel = function (lo, hi, fn) {
-    var dims = [hi[0]-lo[0], hi[1]-lo[1], hi[2]-lo[2]];
-    var data = new Array(dims[2] * dims[1] * dims[0]);
+  var dims = [hi[0]-lo[0], hi[1]-lo[1], hi[2]-lo[2]];
+  var data = new Array(dims[2] * dims[1] * dims[0]);
 
-    let n = 0;
+  let n = 0;
 
-    for (var k = lo[2]; k < hi[2]; k++)
-      for (var j = lo[1]; j < hi[1]; j++)
-        for(var i = lo[0]; i < hi[0]; i++) {
-          data[n] =fn(i, j, k);
-         
-          n++;
-        }
+  for (var k = lo[2]; k < hi[2]; k++)
+    for (var j = lo[1]; j < hi[1]; j++)
+      for(var i = lo[0]; i < hi[0]; i++) {
+        data[n] =fn(i, j, k);
+        n++;
+      }
 
-    return mesher(data, dims);
+  
+  return mesher(data, dims);
+    
+}
+
+var Cube = function (lo, hi, fn) {
+  var dims = [hi[0]-lo[0], hi[1]-lo[1], hi[2]-lo[2]];
+  var data = new Array(dims[2] * dims[1] * dims[0]);
+
+  let n = 0;
+
+  for (var k = lo[2]; k < hi[2]; k++)
+    for (var j = lo[1]; j < hi[1]; j++)
+      for(var i = lo[0]; i < hi[0]; i++) {
+        data[n] =fn(i, j, k);
+        n++;
+      }
+
+  
+  return mesher2(data, dims);
+    
 }
 
 export default {
   build : Voxel,
+  buildCube : Cube,
 } 

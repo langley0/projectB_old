@@ -24,7 +24,11 @@ export default class Battle extends Phase {
             enemy.setSprite(game.sprites["deathknight"]);
             enemy.setGridPosition(8, 3);
             game.addEntity(enemy);
-            game.scene.add(enemy.mesh);
+            // game.scene.add(enemy.mesh);
+
+            for (const block of enemy.shatters) {
+                game.scene.add(block);
+            }
 
             enemy.mesh.material.transparent = true;
             enemy.mesh.material.opacity = 0;
