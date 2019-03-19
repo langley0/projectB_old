@@ -1,5 +1,5 @@
 import Phase from "./phase";
-import Battle from "./battle";
+import Battle from "./battle2";
 
 export default class Cutscene extends Phase {
     constructor(game, kind) {
@@ -24,7 +24,7 @@ export default class Cutscene extends Phase {
                     if (game.player.mesh.visible) {
                         if (!game.player.isFading) {
                             // 여기서 다음 페이즈로 넘어간다
-                            game.nextPhase = new Battle(game);
+                            ///game.nextPhase = new Battle(game);
                         }
                     } else {
                         game.player.mesh.visible = true;

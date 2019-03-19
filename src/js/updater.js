@@ -15,8 +15,9 @@ export default class Updater {
     updateEntities() {
         this.game.forEachEntity((entity) => {
             const isCharacter = entity instanceof Character;
-            if (isCharacter && entity.isLoaded) {
+            if (isCharacter) {
                 this.updateCharacter(entity);
+                this.updateAnimation(entity);
             }
             this.updateEntityFading(entity);
         });
@@ -91,6 +92,32 @@ export default class Updater {
         }
     }
 
+    updateAnimation(entity) {
+        const anim = entity.currentAnimation;
+                
+        if(anim) {
+            if (anim.update(this.game.currentTime)) {
+                // 매터리얼을 변경한다
+                if (anim.currentFrame) {
+                    if ((entity.flipSpriteX && entity.mesh.material.map.repeat.x > 0) || 
+                        (!entity.flipSpriteX && entity.mesh.material.map.repeat.x < 0)) {
+                        entity.mesh.material.map.repeat.x = -entity.mesh.material.map.repeat.x;
+                    }
+
+                    if (entity.mesh.material.map.repeat.x > 0) {
+                        entity.mesh.material.map.offset.set(
+                            anim.currentFrame.x / entity.sprite.width, 
+                            -(entity.sprite.height - anim.currentFrame.y - anim.height)/ entity.sprite.height);
+                    } else {
+                        entity.mesh.material.map.offset.set(
+                                -(entity.sprite.width - anim.currentFrame.x - anim.width) / entity.sprite.width, 
+                                -(entity.sprite.height - anim.currentFrame.y - anim.height)/ entity.sprite.height);
+                    }
+                }
+            }
+        }
+    }
+
     updateTransitions() {
         // 타일의 중앙으로 옮겨놓는다
         const offsetX = this.game.map.offset.x + this.game.map.tilesize / 2;
@@ -158,12 +185,10 @@ export default class Updater {
                 entity.isFading = false;
                 if (entity.mesh) {
                     entity.mesh.material.opacity = 1;
-                    entity.mesh.material.transparent = false;
                 }
 
             } else {
                 if (entity.mesh) {
-                    entity.mesh.material.transparent = true;
                     entity.mesh.material.opacity = dt / duration;
                 }
             }

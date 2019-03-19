@@ -11,53 +11,36 @@ import Chest from './chest';
 import Cutscene from './cutscene';
 
 import ThreeUI from '../lib/three-ui/ThreeUI';
+import GameWorld from './gameworld';
+
+import SpriteData from './sprites';
 
 
 export default class Game {
     init(canvas) {
-        const scene = new THREE.Scene();
-
-        const camera = new THREE.PerspectiveCamera( 30, canvas.width / canvas.height, 1, 1000 );
-        camera.position.set( 0, 100, 250 );
 
         const width = canvas.width;
         const height = canvas.height;
+        this.canvas = canvas;
 
         const renderer = new THREE.WebGLRenderer({canvas: canvas});
         renderer.shadowMap.enabled = true;
         renderer.setPixelRatio( window.devicePixelRatio );
         renderer.setSize( width, height);
 
+        const camera = new THREE.PerspectiveCamera( 30, canvas.width / canvas.height, 1, 1000 );
+        camera.position.set( 0, 100, 250 );
+
         const ui = new ThreeUI(canvas, height);
 
         this.renderer = renderer;
         this.camera = camera;
-        this.scene = scene;
         this.ui = ui;
 
         //===========================
-        // 테스트 코드이다.
-        const map = {
-            width : 10,
-            height: 10,
-            tileSize: 16,
-        }
-
-        const geometry = new THREE.PlaneBufferGeometry(map.width * map.tileSize, map.height * map.tileSize, map.width, map.height );
-        const material = new THREE.MeshStandardMaterial( { color: 0x405040, roughness: 0.75 } );
-        const plane  = new THREE.Mesh( geometry, material );
-        plane.rotation.order = 'YXZ';
-        plane.rotation.x = -Math.PI/2;
-        plane.receiveShadow = true;
-        // 클릭 판정용 바운딩박스
-        geometry.computeBoundingBox();
-        // 월드용 오프셋을 기록한다
-
-
-        //scene.add( plane );
-
-        this._terrain = plane;
-
+        const scene = new THREE.Scene();
+        this.scene = scene;
+        
         // TODO : 카메라 시선을 플레이어에 맞추어야 한다
         camera.lookAt(new THREE.Vector3(0, 0, 0));
         new OrbitControls(camera, renderer.domElement)
@@ -110,12 +93,14 @@ export default class Game {
                 while (this.scene.children.length > 0) {
                     this.scene.remove(this.scene.children[0]);
                 }
-               
 
+                const world = new GameWorld(this, this.map);
+                this.world = world;
+                
                     
                 // 맵을 초기화한다
                 // TODO: 맵을 여기서 초기화하도록 코드를 옮겨야 한다
-                this.scene.add(this._terrain);
+                this.scene.add(world.terrain);
                 this.initEntityGrid();
                 Entity.setGridSize(this.map.tilesize);
 
@@ -152,6 +137,7 @@ export default class Game {
                 // 플레이어를 선언한다
                 const player = new Player(1, username, "");
                 player.setSprite(this.sprites["clotharmor"]);
+                player.buildMesh();
                 player.onRequestPath((x, y) => {
                     const path = this.findPath(player, x, y);
                     return path;
@@ -173,6 +159,7 @@ export default class Game {
 
                 // TODO : 화면에 배치하고 보이지 않게 하여야 한다
                 player.setGridPosition(3, 3);
+                player.idle();
                 this.addEntity(player);
                 this.unregisterEntityPosition(player); // 플레이어를 엔티티에 포함시키지않기위한 특수처리
                 this.player = player;
@@ -184,86 +171,34 @@ export default class Game {
 
                 // 월드에 추가를 한다
                 // TODO : entity 를 일괄로 처리할 수 있는 장치가 필요하다?>
-                //this.scene.add(this.player.mesh);
+                this.scene.add(this.player.mesh);
                 this.start();
-
-                //==========================================
-                // 테스트 코드
-                for (const block of player.shatters) {
-                   
-                    // this.scene.add(block)
-                }
-
-                {
-                    const geometry2_ = new THREE.PlaneGeometry( 32, 32 );
-                    geometry2_.computeFaceNormals();
-                    geometry2_.computeBoundingSphere();
-                    const tex = new THREE.Texture();
-                    tex.image = this.sprites["clotharmor_l"];
-                    console.log(tex.image.width, tex.image.height);
-                    tex.format = THREE.RGBAFormat;
-                    tex.needsUpdate  = true;
-                    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-                    tex.repeat.set(1/2, -1);
-                    //tex.anisotropy = this.renderer.getMaxAnisotropy();
-                    tex.magFilter = THREE.NearestFilter;
-                    tex.minFilter = THREE.NearestFilter;
-
-
-                    const material2_ = new THREE.MeshStandardMaterial({ map: tex, transparent: true });
-                    material2_.precision = "highhp";
-                    var mesh__ = new THREE.Mesh( geometry2_, material2_ );
-                    this.mesh__ = mesh__;
-                    //mesh__.lookAt(this.camera.position);
-                    this.scene.add(mesh__);
-
-                    console.log(geometry2_);
-
-
-                    var geometry_ = new THREE.SphereGeometry( 5, 32, 32 );
-                    var material_ = new THREE.MeshBasicMaterial({transparent: true, opacity: 0});
-                    var sphere = new THREE.Mesh( geometry_, material_ );
-                    sphere.scale.set(1, 2, 1);
-                    sphere.castShadow = true;
-                    //sphere.position.set(24, 16, 12);
-                    mesh__.add(sphere);
-
-                    let count = 0;
-                    setInterval(() => {
-                        count = (count + 1) % 2;
-                        tex.offset.x = count / 2;
-                    }, 200);
-                    //this.scene.add( sphere );
-                }
-                //==========================================
             }
         }, 100);
 
     }
 
     loadSprites() {
-        const spriteNames = ["clotharmor", "sword1", "deathknight", "clotharmor_l"];
         const sprites = {};
-        for (const spName of spriteNames) {
-            const img = new Image();
-            img.src = `static/${spName}.png`;
-            img.onload = function() {
-                img.isLoaded = true;
-            }
+        for (const data of SpriteData) {
+            const sprite = { data: data, image:null, isLoaded: false  };
+            sprites[data.id] = sprite;
 
-            sprites[spName] = img;
+            const img = new Image();
+            img.src = `static/${data.id}.png`;
+            img.onload = function() {
+                sprite.image = img;
+                sprite.isLoaded = true;
+                sprite.width = img.width / 3;
+                sprite.height = img.height / 3;
+            }
         }
 
         this.sprites = sprites;
-
     }
 
     loadMap() {
         this.map = new Map();
-        this.map.offset = {
-            x: this._terrain.geometry.boundingBox.min.x,
-            y: this._terrain.geometry.boundingBox.min.y
-        };
     }
 
     loadModel() {
@@ -376,7 +311,8 @@ export default class Game {
         // 지형터치를 어떻게 만들지?
         const intersects = raycaster.intersectObjects(this.scene.children);
         for ( const inter of intersects) {
-            const pos = this.getGridPosition(inter.point, this._terrain.geometry.boundingBox);
+            // TODO: 함수를 world 쪽에 만들어두어야 한다
+            const pos = this.getGridPosition(inter.point, this.world.terrain.geometry.boundingBox);
 
             // 이제 여기서 무엇을 클릭했는지 조사한다
             const entity = this.getEntityAt(pos.x, pos.y);

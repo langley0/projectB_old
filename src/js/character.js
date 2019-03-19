@@ -2,6 +2,16 @@ import voxel from '../lib/voxel';
 import Entity from './entity';
 import Transition from './transition';
 import Types from '../share/gametypes';
+import Animation from './animation';
+
+const getOrientationAsString = function(orientation) {
+    switch(orientation) {
+        case Types.Orientations.LEFT: return "left"; break;
+        case Types.Orientations.RIGHT: return "right"; break;
+        case Types.Orientations.UP: return "up"; break;
+        case Types.Orientations.DOWN: return "down"; break;
+    }
+};
 
 export default class Character extends Entity{
     constructor(id, kind) {
@@ -21,6 +31,11 @@ export default class Character extends Entity{
     	this.adjacentTiles = {};
 
         // animation speed
+        this.animations = {};
+        this.currentAnimation = null;
+        this.flipSpriteX = false;
+        this.flipSpriteY = false;
+
         this.moveSpeed = 120;
         this.walkSpeed = 100;
         this.idleSpeed = 450;
@@ -36,11 +51,56 @@ export default class Character extends Entity{
 
     setSprite(sprite) {
         this.sprite = sprite;
-        this.buildMesh();
-        this.isLoaded = true;
+
+        for(const name in sprite.data.animations) {
+            const a = sprite.data.animations[name];
+            this.animations[name] = new Animation(name, a.length, a.row, sprite.data.width, sprite.data.height);
+        }
     }
 
-    getFramePixelData() {
+    getAnimationByName(name) {
+        if(name in this.animations) {
+            return this.animations[name];
+        }
+    }
+
+    setAnimation(name, speed, count, onEndCount) {
+        if(this.currentAnimation && this.currentAnimation.name === name) {
+            return;
+        }
+    
+        const a = this.getAnimationByName(name);
+
+        if(a) {
+            this.currentAnimation = a;
+            if(name.substr(0, 3) === "atk") {
+                this.currentAnimation.reset();
+            }
+            this.currentAnimation.setSpeed(speed);
+            this.currentAnimation.setCount(count ? count : 0, onEndCount || function() {
+                this.idle();
+            });
+        }
+    }
+
+    animate(animation, speed, count, onEndCount) {
+        const oriented = ['atk', 'walk', 'idle'];
+        const o = this.orientation;
+        
+        if(!(this.currentAnimation && this.currentAnimation.name === "death")) { // don't change animation if the character is dying
+            this.flipSpriteX = false;
+            this.flipSpriteY = false;
+    
+            if(_.indexOf(oriented, animation) >= 0) {
+                animation += "_" + (o === Types.Orientations.LEFT ? "right" : getOrientationAsString(o));
+                this.flipSpriteX = (this.orientation === Types.Orientations.LEFT) ? true : false;
+            }
+
+            this.setAnimation(animation, speed, count, onEndCount);
+        }
+    }
+
+    /*getFramePixelData() {
         // 주어진 위치의 데이터를 복사해온다
         const canvas = document.createElement('canvas');
         canvas.width = this.sprite.width;
@@ -50,7 +110,7 @@ export default class Character extends Entity{
         context.translate(0, this.sprite.height);
         context.scale(1, -1);
 
-        context.drawImage(this.sprite, 0, 0);
+        context.drawImage(this.sprite.image, 0, 0);
         // 프레임 데이터를 가져온다
         // 원래는 json 으로 가져와야 하는데.. 일단 이부분은 하드코딩해서 진행
         const frameWidth = 32;
@@ -58,11 +118,11 @@ export default class Character extends Entity{
         const data = context.getImageData(0, 0, frameWidth, frameheight);
 
         return data;
-    }
+    }*/
 
     buildMesh() {
         if (this.sprite) {
-            const data = this.getFramePixelData();
+            /*const data = this.getFramePixelData();
             const result = voxel.build([0,0,0], [data.width,data.height,1], function(x, y, z) {
                 const p = (x + y*data.width)*4;
                 const r = data.data[p + 0];
@@ -174,9 +234,41 @@ export default class Character extends Entity{
                 const r = Math.random() * 12;
                 mesh.position.set(r * Math.cos(v), -geometry.boundingBox.min.y,  r * Math.sin(v));
                 this.shatters = shatters;
-            }
+            }*/
 
-            
+            const geometry = new THREE.PlaneGeometry( 32, 32 );
+            geometry.computeFaceNormals();
+            geometry.computeBoundingBox();
+                    
+            const tex = new THREE.Texture();
+            tex.image = this.sprite.image;
+            tex.format = THREE.RGBAFormat;
+            tex.needsUpdate  = true;
+            tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+
+            const column = this.sprite.width / this.sprite.data.width;
+            const row = this.sprite.height / this.sprite.data.height;
+            tex.repeat.set(1/column, -1/row);
+            tex.magFilter = THREE.NearestFilter;
+            tex.minFilter = THREE.NearestFilter;
+
+            const material = new THREE.MeshStandardMaterial({ map: tex, transparent: true });
+            const mesh = new THREE.Mesh( geometry, material );
+
+            // 그림자용 메쉬
+            const geometryShadow = new THREE.SphereGeometry( this.sprite.data.width / 5, 32, 32 );
+            const materialShadow = new THREE.MeshBasicMaterial({transparent: true, opacity: 0});
+            const shadow = new THREE.Mesh( geometryShadow, materialShadow );
+            shadow.scale.set(1, 2, 1);
+            shadow.castShadow = true;
+            mesh.add(shadow);
+
+            this.mesh = mesh;
+            this.offset = {
+                x: 0,
+                y: -this.sprite.data.offset_y || 0,
+                z: 0,
+            }
         }
     }
 
@@ -234,12 +326,12 @@ export default class Character extends Entity{
 
     idle(orientation) {
         this.setOrientation(orientation);
-        //this.animate("idle", this.idleSpeed);
+        this.animate("idle", this.idleSpeed);
     }
 
     walk(orientation) {
         this.setOrientation(orientation);
-        //this.animate("walk", this.walkSpeed);
+        this.animate("walk", this.walkSpeed);
     }
 
     go(x, y) {
@@ -263,7 +355,6 @@ export default class Character extends Entity{
         if(this.isMoving()) {
             this.continueTo(x, y);
         } else {
-            
             const path = this.requestPathfindingTo(x, y);
             this.followPath(path);
         }
