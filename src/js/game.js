@@ -52,7 +52,7 @@ export default class Game {
         // 클릭 판정용 바운딩박스
         geometry.computeBoundingBox();
         // 월드용 오프셋을 기록한다
-        
+
 
         //scene.add( plane );
 
@@ -110,6 +110,9 @@ export default class Game {
                 while (this.scene.children.length > 0) {
                     this.scene.remove(this.scene.children[0]);
                 }
+               
+
+                    
                 // 맵을 초기화한다
                 // TODO: 맵을 여기서 초기화하도록 코드를 옮겨야 한다
                 this.scene.add(this._terrain);
@@ -134,7 +137,7 @@ export default class Game {
                     propEntity.setGridPosition(propData.x, propData.y);
                     
                     if (propEntity instanceof Chest) {
-                        propEntity.mesh = this.model.scene.children[3].clone();
+                        propEntity.mesh = this.model.scene.clone();
                         propEntity.mesh.scale.set(3, 3, 3);
                     }
                     
@@ -184,18 +187,62 @@ export default class Game {
                 //this.scene.add(this.player.mesh);
                 this.start();
 
+                //==========================================
                 // 테스트 코드
                 for (const block of player.shatters) {
                    
-                    this.scene.add(block)
+                    // this.scene.add(block)
                 }
+
+                {
+                    const geometry2_ = new THREE.PlaneGeometry( 32, 32 );
+                    geometry2_.computeFaceNormals();
+                    geometry2_.computeBoundingSphere();
+                    const tex = new THREE.Texture();
+                    tex.image = this.sprites["clotharmor_l"];
+                    console.log(tex.image.width, tex.image.height);
+                    tex.format = THREE.RGBAFormat;
+                    tex.needsUpdate  = true;
+                    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+                    tex.repeat.set(1/2, -1);
+                    //tex.anisotropy = this.renderer.getMaxAnisotropy();
+                    tex.magFilter = THREE.NearestFilter;
+                    tex.minFilter = THREE.NearestFilter;
+
+
+                    const material2_ = new THREE.MeshStandardMaterial({ map: tex, transparent: true });
+                    material2_.precision = "highhp";
+                    var mesh__ = new THREE.Mesh( geometry2_, material2_ );
+                    this.mesh__ = mesh__;
+                    //mesh__.lookAt(this.camera.position);
+                    this.scene.add(mesh__);
+
+                    console.log(geometry2_);
+
+
+                    var geometry_ = new THREE.SphereGeometry( 5, 32, 32 );
+                    var material_ = new THREE.MeshBasicMaterial({transparent: true, opacity: 0});
+                    var sphere = new THREE.Mesh( geometry_, material_ );
+                    sphere.scale.set(1, 2, 1);
+                    sphere.castShadow = true;
+                    //sphere.position.set(24, 16, 12);
+                    mesh__.add(sphere);
+
+                    let count = 0;
+                    setInterval(() => {
+                        count = (count + 1) % 2;
+                        tex.offset.x = count / 2;
+                    }, 200);
+                    //this.scene.add( sphere );
+                }
+                //==========================================
             }
         }, 100);
 
     }
 
     loadSprites() {
-        const spriteNames = ["clotharmor", "sword1", "deathknight"];
+        const spriteNames = ["clotharmor", "sword1", "deathknight", "clotharmor_l"];
         const sprites = {};
         for (const spName of spriteNames) {
             const img = new Image();

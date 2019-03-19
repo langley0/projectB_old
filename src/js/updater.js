@@ -141,6 +141,11 @@ export default class Updater {
                 }
             }
         })
+
+        if (this.game.mesh__) {
+            this.game.mesh__.position.copy(this.game.player.mesh.position);
+            this.game.mesh__.position.y = 11;
+        }
     }
 
     updateEntityFading(entity) {
