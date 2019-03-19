@@ -204,8 +204,9 @@ export default class Game {
     loadModel() {
         //const modelNames = ["treasure"];
         var loader = new GLTFLoader();
-        loader.load("static/treasure.glb", (glb) => {
-            this.model = glb; // 임시 코드... 모델을 어떻게 관리할까?
+        loader.load("static/test.gltf", (gltf) => {
+            console.log(gltf);
+            this.model = gltf; // 임시 코드... 모델을 어떻게 관리할까?
         },undefined, function ( error ) {
 
             console.error( error );
