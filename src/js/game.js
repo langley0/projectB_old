@@ -28,8 +28,12 @@ export default class Game {
         renderer.setPixelRatio( window.devicePixelRatio );
         renderer.setSize( width, height);
 
-        const camera = new THREE.PerspectiveCamera( 30, canvas.width / canvas.height, 1, 1000 );
+        // const camera = new THREE.PerspectiveCamera( 30, canvas.width / canvas.height, 1, 1000 );
+        const aspect = canvas.width / canvas.height;
+        const frustumSize = 250;
+        const camera = new THREE.OrthographicCamera( frustumSize * aspect / - 2, frustumSize * aspect / 2, frustumSize / 2, frustumSize / - 2, 1, 1000 );
         camera.position.set( 0, 100, 250 );
+
 
         const ui = new ThreeUI(canvas, height);
 
