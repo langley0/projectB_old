@@ -2,6 +2,7 @@ const sprites = [];
 const names = [
     "deathknight",
     "clotharmor",
+    "test1",
 ];
 
 

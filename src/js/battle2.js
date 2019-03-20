@@ -113,8 +113,8 @@ export default class Battle extends Phase {
         const context = canvas.getContext('2d');
 
         // 플레이어와 적을 2D Sprite 로 가져온다.
-        const player = new GameSprite(game.sprites["clotharmor"]);
-        const enemy = new GameSprite(game.sprites["deathknight"]);
+        const player = new GameSprite(game.sprites["clotharmor"].image);
+        const enemy = new GameSprite(game.sprites["deathknight"].image);
 
         player.x = 200;
         player.y = 200

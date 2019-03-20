@@ -248,7 +248,7 @@ export default class Character extends Entity{
 
             const column = this.sprite.width / this.sprite.data.width;
             const row = this.sprite.height / this.sprite.data.height;
-            tex.repeat.set(1/column, -1/row);
+            tex.repeat.set(1/column, 1/row);
             tex.magFilter = THREE.NearestFilter;
             tex.minFilter = THREE.NearestFilter;
 

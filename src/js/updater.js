@@ -107,12 +107,17 @@ export default class Updater {
                     if (entity.mesh.material.map.repeat.x > 0) {
                         entity.mesh.material.map.offset.set(
                             anim.currentFrame.x / entity.sprite.width, 
-                            -(entity.sprite.height - anim.currentFrame.y - anim.height)/ entity.sprite.height);
+                            (entity.sprite.height - anim.currentFrame.y - anim.height)/ entity.sprite.height);
+                            //anim.currentFrame.y / entity.sprite.height);
+                            
                     } else {
                         entity.mesh.material.map.offset.set(
-                                -(entity.sprite.width - anim.currentFrame.x - anim.width) / entity.sprite.width, 
-                                -(entity.sprite.height - anim.currentFrame.y - anim.height)/ entity.sprite.height);
+                            -(entity.sprite.width - anim.currentFrame.x - anim.width) / entity.sprite.width, 
+                            (entity.sprite.height - anim.currentFrame.y - anim.height)/ entity.sprite.height);
+                            //anim.currentFrame.y / entity.sprite.height);
                     }
+
+                    console.log(entity.mesh.material.map.repeat.x, entity.sprite.width, entity.sprite.height, anim.name, anim.currentFrame.x, anim.currentFrame.y);
                 }
             }
         }
