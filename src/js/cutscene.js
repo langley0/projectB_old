@@ -28,8 +28,7 @@ export default class Cutscene extends Phase {
                         }
                     } else {
                         game.player.mesh.visible = true;
-                        game.player.mesh.material.transparent = true;
-                        game.player.mesh.material.opacity = 0;
+                        game.player.spriteMesh.material.opacity = 0;
                         game.player.fadeIn(game.currentTime);
                     }
                 }

@@ -14,6 +14,8 @@ import ThreeUI from '../lib/three-ui/ThreeUI';
 import GameWorld from './gameworld';
 
 import SpriteData from './sprites';
+//import * as THREE_ADDONS from 'three-addons';
+import '../lib/bokehshader2';
 
 
 export default class Game {
@@ -27,12 +29,14 @@ export default class Game {
         renderer.shadowMap.enabled = true;
         renderer.setPixelRatio( window.devicePixelRatio );
         renderer.setSize( width, height);
+        renderer.autoClear = false;
 
-        // const camera = new THREE.PerspectiveCamera( 30, canvas.width / canvas.height, 1, 1000 );
-        const aspect = canvas.width / canvas.height;
+        const camera = new THREE.PerspectiveCamera( 20, canvas.width / canvas.height, 1, 1000 );
+        camera.position.set( 0, 150, 500 );
+        /*const aspect = canvas.width / canvas.height;
         const frustumSize = 250;
         const camera = new THREE.OrthographicCamera( frustumSize * aspect / - 2, frustumSize * aspect / 2, frustumSize / 2, frustumSize / - 2, 1, 1000 );
-        camera.position.set( 0, 100, 250 );
+        camera.position.set( frustumSize, frustumSize, frustumSize );*/
 
 
         const ui = new ThreeUI(canvas, height);
@@ -54,6 +58,83 @@ export default class Game {
         this.entityGrid = null;
         this.phase = null;
         this.nextPhase = null;
+
+        this.initPostprocessing(width, height);
+    }
+
+    initPostprocessing(width, height) {
+        const postprocessing = { enabled: true };
+
+        const depthShader = THREE.BokehDepthShader;
+        const materialDepth = new THREE.ShaderMaterial( {
+            uniforms: depthShader.uniforms,
+            vertexShader: depthShader.vertexShader,
+            fragmentShader: depthShader.fragmentShader
+        } );
+
+        materialDepth.uniforms[ 'mNear' ].value = this.camera.near;
+		materialDepth.uniforms[ 'mFar' ].value = this.camera.far;
+        postprocessing.materialDepth = materialDepth;
+
+        const shaderSettings = {
+            rings: 3,
+            samples: 4
+        };
+        
+        postprocessing.scene = new THREE.Scene();
+        postprocessing.camera = new THREE.OrthographicCamera( width / - 2, width / 2, height / 2, height / - 2, - 10000, 10000 );
+        postprocessing.camera.position.z = 100;
+        postprocessing.scene.add( postprocessing.camera );
+        const pars = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBFormat };
+        postprocessing.rtTextureDepth = new THREE.WebGLRenderTarget( width, height, pars );
+        postprocessing.rtTextureColor = new THREE.WebGLRenderTarget( width, height, pars );
+
+        const bokeh_shader = THREE.BokehShader;
+        
+        postprocessing.bokeh_uniforms = THREE.UniformsUtils.clone( bokeh_shader.uniforms );
+        postprocessing.bokeh_uniforms[ 'tColor' ].value = postprocessing.rtTextureColor.texture;
+        postprocessing.bokeh_uniforms[ 'tDepth' ].value = postprocessing.rtTextureDepth.texture;
+        postprocessing.bokeh_uniforms[ 'textureWidth' ].value = width;
+        postprocessing.bokeh_uniforms[ 'textureHeight' ].value = height;
+        postprocessing.bokeh_uniforms[ 'znear' ].value = this.camera.near;
+        postprocessing.bokeh_uniforms[ 'zfar' ].value = this.camera.far;
+        postprocessing.bokeh_uniforms[ 'shaderFocus' ].value = false;
+        postprocessing.bokeh_uniforms[ 'focusCoords' ].value.set( 0.5, 0.5 );
+                    
+        postprocessing.materialBokeh = new THREE.ShaderMaterial( {
+            uniforms: postprocessing.bokeh_uniforms,
+            vertexShader: bokeh_shader.vertexShader,
+            fragmentShader: bokeh_shader.fragmentShader,
+            defines: {
+                RINGS: shaderSettings.rings,
+                SAMPLES: shaderSettings.samples
+            }
+        } );
+        postprocessing.quad = new THREE.Mesh( new THREE.PlaneBufferGeometry( width, height ), postprocessing.materialBokeh );
+        postprocessing.quad.position.z = - 500;
+        postprocessing.scene.add( postprocessing.quad );
+
+        this.postprocessing = postprocessing;
+    }
+
+    updateCamera() {
+        if (this.camera && this.player) {
+            // 카메라가 플레이어를 따라다니도록 한다
+            const reltiveOffset = this.battlemode ? new THREE.Vector3(200, 100, 400)  : new THREE.Vector3(0, 150, 500);
+            const cpos = reltiveOffset.applyMatrix4(this.player.mesh.matrixWorld);
+            
+            // 카메라가 물체를 쫓아가야 한다.
+            const diff = cpos.sub(this.camera.position);
+            const speed = 10;
+
+            const scalar = Math.min(diff.length(), speed);
+            const offset = diff.normalize().multiplyScalar(scalar); 
+         
+            this.camera.position.copy(this.camera.position.add(offset));
+            this.camera.lookAt(this.player.mesh.position);
+
+            this.player.spriteMesh.lookAt(this.camera.position);
+        }
     }
 
     tick() {
@@ -62,7 +143,51 @@ export default class Game {
         // 로직 -> 렌더링 순서로 업데이트를 한다
         this.updater.update();
         this.ui.render();
-        this.renderer.render( this.scene, this.camera );
+        this.updateCamera();
+
+        if (this.postprocessing.enabled) {
+            const renderer = this.renderer;
+            const postprocessing = this.postprocessing;
+            
+
+            // 플레이어 카메라간의 거리를 구한다
+            const targetDistance = this.player.mesh.position.distanceTo(this.camera.position);
+            const zfar = this.camera.far;
+            const znear = this.camera.near;
+            
+            const v = Math.max( 0, Math.min( 1,( ( targetDistance - znear ) / ( zfar - znear ) )));
+            const sdepth =  v * v * (3 - 2 *v);
+            const ldepth =  - zfar * znear / ( (1 - sdepth) * ( zfar - znear ) - zfar );
+
+            //console.log(zfar, znear, targetDistance, v, sdepth, ldepth);
+            
+            postprocessing.bokeh_uniforms[ 'focalDepth' ].value = ldepth;
+
+
+
+            
+            renderer.clear();
+            // render scene into texture
+            renderer.setRenderTarget( postprocessing.rtTextureColor );
+            renderer.clear();
+            renderer.render( this.scene, this.camera );
+            // render depth into texture
+            this.scene.overrideMaterial = postprocessing.materialDepth;
+            renderer.setRenderTarget( postprocessing.rtTextureDepth );
+            renderer.clear();
+            renderer.render( this.scene, this.camera );
+            this.scene.overrideMaterial = null;
+            // render bokeh composite
+            renderer.setRenderTarget( null );
+            renderer.render( postprocessing.scene, postprocessing.camera );
+        } else {
+            // 기본 모드 처리
+            this.scene.overrideMaterial = null;
+            this.renderer.setRenderTarget(null);
+            this.renderer.clear();
+            this.renderer.render( this.scene, this.camera );
+        }
+        
         
         if (!this.isStopped) {
             requestAnimationFrame(this.tick.bind(this));
@@ -359,6 +484,13 @@ export default class Game {
                 // 해당 위치로 플레이어를 이동시킨다
                 this.player.go(pos.x, pos.y);
             }
+        }
+    }
+
+    keyDown(key) {
+        if (key === 66) {
+            // 전투모드를 활성화한다
+            this.battlemode = !this.battlemode;
         }
     }
 

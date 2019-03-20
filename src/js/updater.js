@@ -99,25 +99,23 @@ export default class Updater {
             if (anim.update(this.game.currentTime)) {
                 // 매터리얼을 변경한다
                 if (anim.currentFrame) {
-                    if ((entity.flipSpriteX && entity.mesh.material.map.repeat.x > 0) || 
-                        (!entity.flipSpriteX && entity.mesh.material.map.repeat.x < 0)) {
-                        entity.mesh.material.map.repeat.x = -entity.mesh.material.map.repeat.x;
+                    if ((entity.flipSpriteX && entity.texture.repeat.x > 0) || 
+                        (!entity.flipSpriteX && entity.texture.repeat.x < 0)) {
+                        entity.texture.repeat.x = -entity.texture.repeat.x;
                     }
 
-                    if (entity.mesh.material.map.repeat.x > 0) {
-                        entity.mesh.material.map.offset.set(
+                    if (entity.texture.repeat.x > 0) {
+                        entity.texture.offset.set(
                             anim.currentFrame.x / entity.sprite.width, 
                             (entity.sprite.height - anim.currentFrame.y - anim.height)/ entity.sprite.height);
                             //anim.currentFrame.y / entity.sprite.height);
                             
                     } else {
-                        entity.mesh.material.map.offset.set(
+                        entity.texture.offset.set(
                             -(entity.sprite.width - anim.currentFrame.x - anim.width) / entity.sprite.width, 
                             (entity.sprite.height - anim.currentFrame.y - anim.height)/ entity.sprite.height);
                             //anim.currentFrame.y / entity.sprite.height);
                     }
-
-                    console.log(entity.mesh.material.map.repeat.x, entity.sprite.width, entity.sprite.height, anim.name, anim.currentFrame.x, anim.currentFrame.y);
                 }
             }
         }
@@ -189,12 +187,12 @@ export default class Updater {
             if(dt > duration) {
                 entity.isFading = false;
                 if (entity.mesh) {
-                    entity.mesh.material.opacity = 1;
+                    entity.spriteMesh.material.opacity = 1;
                 }
 
             } else {
                 if (entity.mesh) {
-                    entity.mesh.material.opacity = dt / duration;
+                    entity.spriteMesh.material.opacity = dt / duration;
                 }
             }
         }

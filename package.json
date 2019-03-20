@@ -18,6 +18,7 @@
     "pixi-particles": "^3.2.0",
     "pixi.js": "^4.8.6",
     "three": "^0.102.1",
+    "three-addons": "^1.2.0",
     "three-orbitcontrols": "^2.102.1",
     "underscore": "^1.9.1",
     "vue": "^2.5.2",

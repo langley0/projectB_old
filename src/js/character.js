@@ -236,6 +236,8 @@ export default class Character extends Entity{
                 this.shatters = shatters;
             }*/
 
+            const group = new THREE.Group();
+
             const geometry = new THREE.PlaneGeometry( 32, 32 );
             geometry.computeFaceNormals();
             geometry.computeBoundingBox();
@@ -254,6 +256,7 @@ export default class Character extends Entity{
 
             const material = new THREE.MeshStandardMaterial({ map: tex, transparent: true });
             const mesh = new THREE.Mesh( geometry, material );
+            group.add(mesh);
 
             // 그림자용 메쉬
             const geometryShadow = new THREE.SphereGeometry( this.sprite.data.width / 5, 32, 32 );
@@ -261,9 +264,12 @@ export default class Character extends Entity{
             const shadow = new THREE.Mesh( geometryShadow, materialShadow );
             shadow.scale.set(1, 2, 1);
             shadow.castShadow = true;
-            mesh.add(shadow);
+            group.add(shadow);
 
-            this.mesh = mesh;
+            this.mesh = group;
+            this.texture = mesh.material.map;
+            this.spriteMesh = mesh;
+            
             this.offset = {
                 x: 0,
                 y: -this.sprite.data.offset_y || 0,

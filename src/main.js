@@ -23,6 +23,9 @@ function initApp() {
     game.click(mouse.x, mouse.y);
   });
 
+  window.addEventListener('keydown', (e) => {
+    game.keyDown(e.keyCode);
+  },false);
 
   // 플레이 버튼을 누르면 시작하게 해야 하지만... 일단은 그냥하자
   app.start("TEST");
