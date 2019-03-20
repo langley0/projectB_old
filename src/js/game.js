@@ -101,18 +101,20 @@ export default class Game {
                 // 맵을 초기화한다
                 // TODO: 맵을 여기서 초기화하도록 코드를 옮겨야 한다
                 this.scene.add(world.terrain);
+                this.scene.add(world.model);
                 this.initEntityGrid();
                 Entity.setGridSize(this.map.tilesize);
 
                 // 월드 라이트를 추가
                 // TODO : map에 따라서 라이트를 바꾸어야 한다
                 // 헤미스피어를 붙인다
-                const hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 1 );
+                /*const hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 1 );
                 hemiLight.color.setHSL( 0.6, 1, 0.6 );
                 hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
                 hemiLight.position.set( 0, 50, 0 );
-                this.scene.add( hemiLight );
-
+                this.scene.add( hemiLight );*/
+                const ambient = new THREE.AmbientLight(0xffffff, 1);
+                this.scene.add( ambient );
                 
                 // 프랍을 배치한다
                 let id = 2;
@@ -122,13 +124,18 @@ export default class Game {
                     propEntity.setGridPosition(propData.x, propData.y);
                     
                     if (propEntity instanceof Chest) {
-                        propEntity.mesh = this.model.scene.clone();
-                        propEntity.mesh.scale.set(3, 3, 3);
+                        propEntity.model =this.model; 
+                        propEntity.mesh = propEntity.model.scene.clone();
+                        propEntity.mesh.scale.set(5, 5, 5);
+                        propEntity.mesh.rotation.y = Math.PI;
                     }
                     
                     this.addEntity(propEntity);
                     this.scene.add(propEntity.mesh);
                 }
+
+                // 몬스터를 배치한다.
+                
 
 
                 this.pathfinder = new Pathfinder(this.map.width, this.map.height)
@@ -136,7 +143,7 @@ export default class Game {
 
                 // 플레이어를 선언한다
                 const player = new Player(1, username, "");
-                player.setSprite(this.sprites["clotharmor"]);
+                player.setSprite(this.sprites["test1"]);
                 player.buildMesh();
                 player.onRequestPath((x, y) => {
                     const path = this.findPath(player, x, y);
@@ -147,13 +154,37 @@ export default class Game {
                     if(player.target instanceof Chest) {
                         const chest = player.target;
                         player.target = null;
+
+                        if (!chest.open) {
+                            chest.open = true;
+
+                            // 상자를 연다
+                            const mixer = new THREE.AnimationMixer(chest.mesh.children[0]);
+                            const clips = this.model.animations;
+                            const clip = THREE.AnimationClip.findByName( clips, 'Cube.001Action_Cube.001' );
+                            const action = mixer.clipAction( clip );
+                            action.setLoop(THREE.LoopOnce);
+                            action.clampWhenFinished = true;
+                            action.play();
+                            const update = setInterval(() => {
+                                mixer.update(0.05);
+                                if (!action.isRunning()){
+                                    clearInterval(update);
+                                }
+                            }, 10);
+                        }
+
+
+
+                        /*console.log(clip);
+
                         // 다음 프레임에 상자를 제거해버린다. 
                         // TODO : 이것도 좀 영리하게 만들수 없을까?
                         requestAnimationFrame(() => {
                             this.removeEntity(chest);
                             this.scene.remove(chest.mesh);
                             
-                        });
+                        });*/
                     }
                 });
 
@@ -189,8 +220,8 @@ export default class Game {
             img.onload = function() {
                 sprite.image = img;
                 sprite.isLoaded = true;
-                sprite.width = img.width / 3;
-                sprite.height = img.height / 3;
+                sprite.width = img.width;
+                sprite.height = img.height;
             }
         }
 
@@ -204,8 +235,7 @@ export default class Game {
     loadModel() {
         //const modelNames = ["treasure"];
         var loader = new GLTFLoader();
-        loader.load("static/test.gltf", (gltf) => {
-            console.log(gltf);
+        loader.load("static/box.gltf", (gltf) => {
             this.model = gltf; // 임시 코드... 모델을 어떻게 관리할까?
         },undefined, function ( error ) {
 

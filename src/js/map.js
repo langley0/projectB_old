@@ -1,5 +1,4 @@
-import $ from "jquery";
-import * as _ from 'underscore';
+import GLTFLoader from './gltfloader';
 
 const isInt = function(n) {
     return (n % 1) === 0;
@@ -15,7 +14,12 @@ export default class Map {
         $.get(filepath, (data) => {
             this._initMap(data);
             this._generateCollisionGrid();
-            this.isLoaded = true;
+
+            var loader = new GLTFLoader();
+            loader.load("static/terrain.gltf", (model) => {
+                this.model = model;
+                this.isLoaded = true;
+            });
         }, 'json');
     }
 
