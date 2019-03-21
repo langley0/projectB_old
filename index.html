@@ -3,7 +3,6 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <link rel="stylesheet" href="static/css/app.scss">
     <title>project B</title>
     <style>
         html, body {
@@ -16,7 +15,7 @@
           cursor: url(../static/common/cursor.png), auto;
         }
 
-        dd,p {
+        dl,dd,p {
           margin: 0;
         }
 
@@ -67,14 +66,14 @@
           z-index: 3;
         }
 
-        /* ---# test code --- */
+        /* intro */
         #intro {
+          display: none;
           z-index: 55;
           background-color: black;
         }
 
         #intro .introTitle {
-          /* background: url(../static/common/spritesheet.png) no-repeat 0 -294px; */
           width: 422px;
           height: 182px;
 
@@ -95,6 +94,15 @@
           -webkit-text-fill-color: rgba(255, 255, 255, 0.1);
         }
 
+        @keyframes animate {
+          0% {
+            background-position: -500%;
+          }
+          100% {
+            background-position: 500%;
+          }
+        }
+
         #intro .introTitle .playButton{
           width: 103px;
           height: 30px;
@@ -102,7 +110,10 @@
 
           text-indent: -9999px;
         }
+        /* ./intro */
 
+
+        /* navi */
         .navi {
           position: absolute;
           z-index: 10;
@@ -114,27 +125,25 @@
           top: 0;
           left: 0;
           right: 0;
+
+          opacity: 0;
+          transition: opacity 0.3s;
         }
 
         .navi p {
           color: #fff;
         }
         .navi-info .user{
-          width:50px;
-          height:50px;
-          background: url(../static/common/user_profile.png) no-repeat 0 0;
+          width:128px;
+          height:48.5px;
+          background: url(../static/common/user_info.png) no-repeat 0 0;
           background-size: contain;
         }
-
-        .user-life {
-          display: none;
-          /*           
-          width: 154px;
-          height: 19px;
-          background: url(../static/common/barsheet.png) no-repeat 0 -50px;
-          background-size: cover; */
+        .navi-info p {
+          margin: 5px 0;
+          font-size: 13px;
+          font-weight: bold;
         }
-
         .navi-items {
           display: none;
 
@@ -165,7 +174,9 @@
           color:#fff;
           padding-right: 10px;
         }
+        /* navi */
 
+        /* modal */
         .modalContainer {
           display: none;
           
@@ -203,9 +214,6 @@
           background-size: cover;
           overflow: hidden;
         }
-
-
-
         .inventory {
           display: none;
           position: absolute;
@@ -219,27 +227,53 @@
           background-size: cover;
           overflow: hidden;
         }
-       
+       /* modal */
+        
 
-        @keyframes animate {
-          0% {
-            background-position: -500%;
-          }
-          100% {
-            background-position: 500%;
-          }
-        }
+       /* stageInfo */
+       .stageInfo{
+         width: 800px;
+         height: 400px;
+
+         position: absolute;
+         top: 0;
+         left: 0;
+         right: 0;
+         margin: 0 auto;
+
+         background:url(../static/common/intro.png) no-repeat 0 0;
+         background-color: transparent;
+       }
+
+       .stageInfo .content {
+         text-align: center;
+       }
+
+       .stageInfo .content  .title {
+          position: absolute;
+          bottom: 107px;
+          left: 0;
+          right: 0;
+
+          color: #fff;
+          font-weight: bold;
+          font-size: 25px;
+       }
+       
       </style>
   </head>
 
   <body>
     <div class="sceneWrapper" id="sceneWrapper">
-      <div class="navi">
+      
+      <!-- navi -->
+      <div class="navi" id="navi">
           <div class="navi-info">
             <p class="user"></p>
-            <p>헌터1</p>
-            <p class="user-life">10</p>
-            <p>득템 <em>100</em></p>
+            <p class="user_name">헌터1</p>
+            <p class="user_life">남은 생명치</p>
+            <p class="user_exp">경험치</p>
+            <!-- <p>득템 <em>100</em></p> -->
           </div>
 
           <div class="navi-game">
@@ -251,18 +285,14 @@
           </div>
       </div>
 
+      <!-- Canvas : game scene  -->
       <canvas id ="canvas" class="scene" width="800" height="400"></canvas>
       <canvas id ="foreground" class="scene" width="800" height="400"></canvas>
-     
-      <div class="navi-items">
-          <ul>
-            <li>item1</li>
-            <li>item2</li>
-            <li>item3</li>
-          </ul>
-        </div>
+      <!-- Canvas : game scene  -->
+
     </div>
 
+    <!-- intro -->
     <div id ="intro" class="scene">
       <dl class="introTitle">
         <dt class="title">projectB</dt>
@@ -283,7 +313,14 @@
     </div>
     <!--. 모달 컨테이너 -->
     <!-- inventory -->
-    <div class="inventory" id="inventory">
+    <div class="inventory" id="inventory"></div>
+    
+    <!-- stageInfo -->
+    <div class="stageInfo" id="stageInfo">
+      <dl class="content">
+        <dt class="title">던젼 1923층</dt>
+        <dd class="desc"></dd>
+      </dl>
     </div>
   </body>
 </html>
