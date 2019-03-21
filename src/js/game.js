@@ -5,6 +5,7 @@ import Pathfinder from './pathfinder';
 import Entity from './entity';
 import EntityFactory from './entityfactory';
 import GLTFLoader from './gltfloader';
+import Types from '../share/gametypes';
 
 import OrbitControls  from 'three-orbitcontrols';
 import Chest from './chest';
@@ -14,9 +15,9 @@ import ThreeUI from '../lib/three-ui/ThreeUI';
 import GameWorld from './gameworld';
 
 import SpriteData from './sprites';
-//import * as THREE_ADDONS from 'three-addons';
 import '../lib/bokehshader2';
-
+import Character from './character';
+import MovieClip from './movieclip';
 
 export default class Game {
     init(canvas) {
@@ -118,22 +119,56 @@ export default class Game {
     updateCamera() {
         if (this.camera && this.player) {
             // 카메라가 플레이어를 따라다니도록 한다
-            const reltiveOffset = this.battlemode ? new THREE.Vector3(200, 100, 400)  : new THREE.Vector3(0, 150, 500);
-            const cpos = reltiveOffset.applyMatrix4(this.player.mesh.matrixWorld);
-            const lookTarget = this.player.mesh.position.clone();
-            lookTarget.y += 16;
+            let lookTarget;
+            let cameraPos;
+            const reltiveOffset = new THREE.Vector3(0, 150, 500);
+            if (this.battlemode) {
+                // 전투에 참여하는 캐릭터들의 중간값을 본다.
+
+                // 전투 참여 캐릭터들을 일단 스프라이트 메쉬로 뽑아낸다
+                let center = new THREE.Vector3(0, 0, 0);
+                let count = 0;
+                this.forEachEntity((entity) => {
+                    if (entity.spriteMesh) {
+                        center = center.add(entity.mesh.position.clone());
+                        count ++;
+                    }
+                });
+
+                lookTarget = center.divideScalar(count);
+
+                if (this.battle_asset.zoom_effect) {
+                    // 거리를 줄인다
+                    reltiveOffset.z = 250;
+                    reltiveOffset.y = 75;
+                }
+
+            } else {
+                lookTarget = this.player.mesh.position.clone();;
+                lookTarget.y += 16;
+            }
+
+            
+            cameraPos = reltiveOffset.add(lookTarget);
+
+            
             
             // 카메라가 물체를 쫓아가야 한다.
-            const diff = cpos.sub(this.camera.position);
-            const speed = 10;
+            const diff = cameraPos.sub(this.camera.position);
+            const speed = 5;
 
             const scalar = Math.min(diff.length(), speed);
             const offset = diff.normalize().multiplyScalar(scalar); 
          
-            this.camera.position.copy(this.camera.position.add(offset));
+            this.camera.position.add(offset);
             this.camera.lookAt(lookTarget);
 
-            this.player.spriteMesh.lookAt(this.camera.position);
+            // 캐릭터 엔티티는 모두 이와 같이 처리한다
+            this.forEachEntity((entity) => {
+                if (entity.spriteMesh) {
+                    entity.spriteMesh.lookAt(this.camera.position);
+                }
+            });
         }
     }
 
@@ -143,6 +178,19 @@ export default class Game {
         // 로직 -> 렌더링 순서로 업데이트를 한다
         this.updater.update();
         this.ui.render();
+
+        // 배틀모드 특별처리
+        if (this.battle_asset) {
+            if (this.battle_asset.movie) {
+                this.battle_asset.movie.update();
+            }
+
+            if (this.battle_asset.update) {
+                this.battle_asset.update();
+            }
+        }
+
+
         this.updateCamera();
 
         if (this.postprocessing.enabled) {
@@ -272,7 +320,7 @@ export default class Game {
 
                 // 플레이어를 선언한다
                 const player = new Player(1, username, "");
-                player.setSprite(this.sprites["test2"]);
+                player.setSprite(this.sprites["test3"]);
                 player.buildMesh();
                 player.onRequestPath((x, y) => {
                     const path = this.findPath(player, x, y);
@@ -302,18 +350,6 @@ export default class Game {
                                 }
                             }, 10);
                         }
-
-
-
-                        /*console.log(clip);
-
-                        // 다음 프레임에 상자를 제거해버린다. 
-                        // TODO : 이것도 좀 영리하게 만들수 없을까?
-                        requestAnimationFrame(() => {
-                            this.removeEntity(chest);
-                            this.scene.remove(chest.mesh);
-                            
-                        });*/
                     }
                 });
 
@@ -500,10 +536,88 @@ export default class Game {
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(uiimg, 0, 0);
                 };
+
+                // 적을 추가하고 카메라타겟을 둘의 중간으로 잡는다
+                const enemy = new Character(10, "");
+                enemy.setSprite(this.sprites["test4"]);
+                enemy.buildMesh();
+                enemy.setGridPosition(3,5);
+                this.addEntity(enemy);
+                this.scene.add(enemy.mesh);
+                enemy.animate("attack_ready", 200);
+
+                // 캐릭터도 강제로 이동시킨다
+                this.player.setGridPosition(12,5);
+                this.player.setOrientation(Types.Orientations.LEFT);
+                this.player.walk();
+
+                const battle_asset = {
+                    enemy: enemy,
+                    click: this.click,
+                };
+
+                this.click = () => {
+                    // 다른 함수로 대체
+                    // 캐릭터 앞까지 이동을 하고 그 다음에 공격을 한다.
+                    // 좌표는 일단 하드코딩을 한다
+                    if (!enemy.isAttacking) {
+                        const from = enemy.mesh.position.clone();
+                        const to = this.player.mesh.position.clone();
+
+                        // 타임아웃으로 컨트롤을 한다 
+                        const attackerMovie = new MovieClip(
+                            new MovieClip.Timeline(0, 40, enemy.mesh, [["x", from.x, to.x-16, "inOutSine"], ["z", from.z, to.z, "inOutSine"]]),
+                            new MovieClip.Timeline(41, 100, enemy.mesh, [["x", to.x-16, to.x-16, "linear"], ["z", to.z, to.z, "linear"]]),
+                            new MovieClip.Timeline(101, 130, enemy.mesh, [["x", to.x-16, from.x, "inOutSine"], ["z", to.z, from.z, "inOutSine"]]),
+                        );
+
+                        attackerMovie.playAndDestroy(() => {
+                            enemy.isAttacking = false;
+                        });
+
+                        enemy.isAttacking = true;
+                        battle_asset.movie = attackerMovie;
+                        battle_asset.update = () => {
+                            if (attackerMovie._playing) {
+                                if (attackerMovie._frame > 100) {
+                                    // 이동 모션을 튼다
+                                    enemy.animate("attack_ready", 200);
+                                    battle_asset.zoom_effect = false;
+                                } else if (attackerMovie._frame > 70) {
+                                    enemy.animate("attack", 100); 
+                                } else if (attackerMovie._frame > 40) {
+                                    battle_asset.zoom_effect = true;
+                                }
+                                
+                            }
+                        }
+                        
+                    }
+                };
+
+                this.battle_asset = battle_asset;
+                
+
+
             } else {
                 const canvas = document.getElementById("foreground");
                 const ctx = canvas.getContext('2d');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                // 배틀리소스를 제거한다
+                if (this.battle_asset) {
+                    const enemy = this.battle_asset.enemy;
+                    this.removeEntity(enemy);
+                    this.scene.remove(enemy.mesh);
+                    this.click = this.battle_asset.click;
+                    if (this.battle_asset.timeout) {
+                        clearTimeout(this.battle_asset.timeout);
+                    }
+
+                    this.player.idle();
+
+                    this.battle_asset = null;
+                }
             }
         }
     }

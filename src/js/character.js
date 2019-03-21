@@ -252,6 +252,7 @@ export default class Character extends Entity{
 
             const column = this.sprite.width / this.sprite.data.width;
             const row = this.sprite.height / this.sprite.data.height;
+
             tex.repeat.set(1/column, 1/row);
             tex.magFilter = THREE.NearestFilter;
             tex.minFilter = THREE.NearestMipMapNearestFilter ;
@@ -262,13 +263,13 @@ export default class Character extends Entity{
             mesh.scale.y = scale;
             group.add(mesh);
 
-            // 그림자용 메쉬
+            /*// 그림자용 메쉬
             const geometryShadow = new THREE.SphereGeometry( 1, 16, 16 );
             const materialShadow = new THREE.MeshBasicMaterial({transparent: true, opacity: 0});
             const shadow = new THREE.Mesh( geometryShadow, materialShadow );
             shadow.scale.set( this.sprite.data.width/2.3, this.sprite.data.height/2.3, this.sprite.data.width/2.3);
             shadow.castShadow = true;
-            mesh.add(shadow);
+            mesh.add(shadow);*/
 
             this.mesh = group;
             this.texture = mesh.material.map;

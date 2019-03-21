@@ -4,7 +4,7 @@
     "tilesize": 16,
     "collisions": [80],
     "props": [
-        { "kind":2, "x":5, "y":5 },
+        { "kind":2, "x":5, "y":8 },
         { "kind":3, "x":0, "y":0 },
         { "kind":3, "x":0, "y":9 }
     ]
