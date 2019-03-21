@@ -232,17 +232,20 @@
 
        /* stageInfo */
        .stageInfo{
-         width: 800px;
-         height: 400px;
+          width: 800px;
+          height: 400px;
+          margin: 0 auto;
 
-         position: absolute;
-         top: 0;
-         left: 0;
-         right: 0;
-         margin: 0 auto;
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          z-index: 111;
 
-         background:url(../static/common/intro.png) no-repeat 0 0;
-         background-color: transparent;
+          background:url(../static/common/intro_t.png) no-repeat 0 0;
+          opacity: 0;
+
+          transition: opacity 0.3s linear;
        }
 
        .stageInfo .content {

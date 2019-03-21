@@ -48,20 +48,22 @@ function initApp() {
       });
     });
   });
-
-  // $('#game-start').click(function (){
-  //   var intro = document.getElementById('intro');
-  //   intro.style.display = 'none';
-  //   app.start("TEST");
-  // });
-
+  
   // 플레이 버튼을 누르면 시작하게 해야 하지만... 일단은 그냥하자
   app.start("TEST");
 
   var navi = document.getElementById('navi');
   navi.style.opacity = 1;
   var stage = document.getElementById('stageInfo');
-  stage.style.display = 'block';
+  
+  setTimeout(() => {
+    stage.style.opacity = 1;
+  }, 3000);
+
+  setTimeout(() => {
+    stage.style.opacity = 0;
+    stage.style.display = 'none';
+  }, 6000);
 }
 
 initApp();

@@ -1,0 +1,17 @@
+{
+	"id": "test4",
+	"width": 72,
+	"height": 48,
+	"animations": {
+		"attack_ready": {
+			"length": 3,
+			"row": 0
+		},
+		"attack": {
+			"length": 3,
+			"row": 1
+		}
+	},
+	"offset_x": 0,
+	"offset_y": -22
+}
