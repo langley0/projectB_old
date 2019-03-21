@@ -31,8 +31,7 @@ export default class Game {
         renderer.setSize( width, height);
         renderer.autoClear = false;
 
-        const camera = new THREE.PerspectiveCamera( 20, canvas.width / canvas.height, 1, 1000 );
-        camera.position.set( 0, 150, 500 );
+        const camera = new THREE.PerspectiveCamera( 20, canvas.width / canvas.height, 0.01, 1000 );
         /*const aspect = canvas.width / canvas.height;
         const frustumSize = 250;
         const camera = new THREE.OrthographicCamera( frustumSize * aspect / - 2, frustumSize * aspect / 2, frustumSize / 2, frustumSize / - 2, 1, 1000 );
@@ -50,8 +49,7 @@ export default class Game {
         this.scene = scene;
         
         // TODO : 카메라 시선을 플레이어에 맞추어야 한다
-        camera.lookAt(new THREE.Vector3(0, 0, 0));
-        new OrbitControls(camera, renderer.domElement)
+        //new OrbitControls(camera, renderer.domElement)
 
         // 게임 정보
         this.entities = {};
@@ -122,6 +120,8 @@ export default class Game {
             // 카메라가 플레이어를 따라다니도록 한다
             const reltiveOffset = this.battlemode ? new THREE.Vector3(200, 100, 400)  : new THREE.Vector3(0, 150, 500);
             const cpos = reltiveOffset.applyMatrix4(this.player.mesh.matrixWorld);
+            const lookTarget = this.player.mesh.position.clone();
+            lookTarget.y += 16;
             
             // 카메라가 물체를 쫓아가야 한다.
             const diff = cpos.sub(this.camera.position);
@@ -131,7 +131,7 @@ export default class Game {
             const offset = diff.normalize().multiplyScalar(scalar); 
          
             this.camera.position.copy(this.camera.position.add(offset));
-            this.camera.lookAt(this.player.mesh.position);
+            this.camera.lookAt(lookTarget);
 
             this.player.spriteMesh.lookAt(this.camera.position);
         }
@@ -242,7 +242,7 @@ export default class Game {
                 hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
                 hemiLight.position.set( 0, 50, 0 );
                 this.scene.add( hemiLight );*/
-                const ambient = new THREE.AmbientLight(0xffffff, 1);
+                const ambient = new THREE.AmbientLight(0xffffff, 1.5);
                 this.scene.add( ambient );
                 
                 // 프랍을 배치한다
@@ -272,7 +272,7 @@ export default class Game {
 
                 // 플레이어를 선언한다
                 const player = new Player(1, username, "");
-                player.setSprite(this.sprites["test1"]);
+                player.setSprite(this.sprites["test2"]);
                 player.buildMesh();
                 player.onRequestPath((x, y) => {
                     const path = this.findPath(player, x, y);

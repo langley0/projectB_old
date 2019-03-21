@@ -236,9 +236,11 @@ export default class Character extends Entity{
                 this.shatters = shatters;
             }*/
 
+            const scale = 0.6;
+
             const group = new THREE.Group();
 
-            const geometry = new THREE.PlaneGeometry( 32, 32 );
+            const geometry = new THREE.PlaneGeometry( this.sprite.data.width, this.sprite.data.height );
             geometry.computeFaceNormals();
             geometry.computeBoundingBox();
                     
@@ -252,19 +254,21 @@ export default class Character extends Entity{
             const row = this.sprite.height / this.sprite.data.height;
             tex.repeat.set(1/column, 1/row);
             tex.magFilter = THREE.NearestFilter;
-            tex.minFilter = THREE.NearestFilter;
+            tex.minFilter = THREE.NearestMipMapNearestFilter ;
 
             const material = new THREE.MeshStandardMaterial({ map: tex, transparent: true });
             const mesh = new THREE.Mesh( geometry, material );
+            mesh.scale.x = scale;
+            mesh.scale.y = scale;
             group.add(mesh);
 
             // 그림자용 메쉬
-            const geometryShadow = new THREE.SphereGeometry( this.sprite.data.width / 5, 32, 32 );
+            const geometryShadow = new THREE.SphereGeometry( 1, 16, 16 );
             const materialShadow = new THREE.MeshBasicMaterial({transparent: true, opacity: 0});
             const shadow = new THREE.Mesh( geometryShadow, materialShadow );
-            shadow.scale.set(1, 2, 1);
+            shadow.scale.set( this.sprite.data.width/2.3, this.sprite.data.height/2.3, this.sprite.data.width/2.3);
             shadow.castShadow = true;
-            group.add(shadow);
+            mesh.add(shadow);
 
             this.mesh = group;
             this.texture = mesh.material.map;
@@ -272,7 +276,7 @@ export default class Character extends Entity{
             
             this.offset = {
                 x: 0,
-                y: -this.sprite.data.offset_y || 0,
+                y: -this.sprite.data.offset_y * scale || 0,
                 z: 0,
             }
         }
