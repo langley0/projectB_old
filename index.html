@@ -20,9 +20,10 @@
         }
 
         .sceneWrapper {
+          position: relative;
           width: 800px; 
           height: 400px; 
-          margin: 5% 0;
+          margin: 5% auto 0;
           padding: 0;
           overflow: hidden;
 
@@ -40,7 +41,7 @@
           border: none;
           background: url(../static/common/button.png) no-repeat 0 0;
         }
-
+        
         /* button:hover{
           font-weight: bold;
           border: none;
@@ -85,22 +86,6 @@
           padding: 40px 0 20px;
           font-weight: bold;
           font-size: 60px;
-
-          background: linear-gradient(90deg, #000, #fff, #000);
-          background-repeat: no-repeat;
-          background-size: 80%;
-          animation: animate 3s linear infinite;
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: rgba(255, 255, 255, 0.1);
-        }
-
-        @keyframes animate {
-          0% {
-            background-position: -500%;
-          }
-          100% {
-            background-position: 500%;
-          }
         }
 
         #intro .introTitle .playButton{
@@ -112,6 +97,26 @@
         }
         /* ./intro */
 
+
+        .battle_start {
+          position: absolute;
+          bottom: -200px;
+          right: 10px;
+
+          z-index: 111;
+
+          width: 48.5px;
+          height: 57.25px;
+          
+          width: 97px;
+          height: 114.5px;
+          background: url(../static/common/btn_start.png) no-repeat 0 0;
+          background-size: cover;
+
+          text-indent: -9999px;
+          opacity: 0;
+          transition: all 0.3s linear;
+        }
 
         /* navi */
         .navi {
@@ -293,6 +298,7 @@
       <canvas id ="foreground" class="scene" width="800" height="400"></canvas>
       <!-- Canvas : game scene  -->
 
+      <button class="battle_start" id="battle_start">battle start</button>
     </div>
 
     <!-- intro -->
@@ -325,5 +331,6 @@
         <dd class="desc"></dd>
       </dl>
     </div>
+
   </body>
 </html>
