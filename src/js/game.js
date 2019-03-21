@@ -31,7 +31,7 @@ export default class Game {
         renderer.setSize( width, height);
         renderer.autoClear = false;
 
-        const camera = new THREE.PerspectiveCamera( 20, canvas.width / canvas.height, 0.01, 1000 );
+        const camera = new THREE.PerspectiveCamera( 20, canvas.width / canvas.height, 1, 3000 );
         /*const aspect = canvas.width / canvas.height;
         const frustumSize = 250;
         const camera = new THREE.OrthographicCamera( frustumSize * aspect / - 2, frustumSize * aspect / 2, frustumSize / 2, frustumSize / - 2, 1, 1000 );
