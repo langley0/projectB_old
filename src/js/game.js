@@ -491,6 +491,20 @@ export default class Game {
         if (key === 66) {
             // 전투모드를 활성화한다
             this.battlemode = !this.battlemode;
+            if (this.battlemode) {
+                // ui 를 화면에 그린다
+                const uiimg = new Image();
+                uiimg.src = "static/battleui.png";
+                uiimg.onload = () => {
+                    const canvas = document.getElementById("foreground");
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(uiimg, 0, 0);
+                };
+            } else {
+                const canvas = document.getElementById("foreground");
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
         }
     }
 
