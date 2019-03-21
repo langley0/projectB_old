@@ -1,19 +1,289 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <link rel="stylesheet" href="static/css/app.scss">
     <title>project B</title>
     <style>
-        body { 
-          margin: 0; }
-        canvas { width: 100%; height: 100% }
+        html, body {
+          margin: 0;
+          padding: 0;
+          width: 100%;
+          height: 100%;
+          position: relative;
+
+          cursor: url(../static/common/cursor.png), auto;
+        }
+
+        dd,p {
+          margin: 0;
+        }
+
+        .sceneWrapper {
+          width: 800px; 
+          height: 400px; 
+          margin: 5% 0;
+          padding: 0;
+          overflow: hidden;
+
+          transition: all 0.5s;
+        }
+
+        button {
+          width: 103px;
+          height: 30px;
+          padding: 5px 15px;
+          cursor: url(../static/common/cursor.png), auto;
+          
+          color: #000;
+          font-weight: bold;
+          border: none;
+          background: url(../static/common/button.png) no-repeat 0 0;
+        }
+
+        /* button:hover{
+          font-weight: bold;
+          border: none;
+          background: url(../static/common/button.png) no-repeat 0 -28px;
+        } */
+
+        /* canvas 공통 */
+        .scene {
+          width: 800px;
+          height: 400px;
+
+          margin: 0 auto;
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+        }
+
+        #canvas {
+          z-index: 2;
+        }
+        #foreground {
+          z-index: 3;
+        }
+
+        /* ---# test code --- */
+        #intro {
+          z-index: 55;
+          background-color: black;
+        }
+
+        #intro .introTitle {
+          /* background: url(../static/common/spritesheet.png) no-repeat 0 -294px; */
+          width: 422px;
+          height: 182px;
+
+          margin: 100px auto;
+          text-align: center;
+        }
+        
+        #intro .introTitle .title {
+          padding: 40px 0 20px;
+          font-weight: bold;
+          font-size: 60px;
+
+          background: linear-gradient(90deg, #000, #fff, #000);
+          background-repeat: no-repeat;
+          background-size: 80%;
+          animation: animate 3s linear infinite;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: rgba(255, 255, 255, 0.1);
+        }
+
+        #intro .introTitle .playButton{
+          width: 103px;
+          height: 30px;
+          background: url(../static/common/spritesheet.png) no-repeat -229px -256px;
+
+          text-indent: -9999px;
+        }
+
+        .navi {
+          position: absolute;
+          z-index: 10;
+          display: flex;
+          justify-content: space-between;
+
+          width: 780px;
+          margin: 10px auto;
+          top: 0;
+          left: 0;
+          right: 0;
+        }
+
+        .navi p {
+          color: #fff;
+        }
+        .navi-info .user{
+          width:50px;
+          height:50px;
+          background: url(../static/common/user_profile.png) no-repeat 0 0;
+          background-size: contain;
+        }
+
+        .user-life {
+          display: none;
+          /*           
+          width: 154px;
+          height: 19px;
+          background: url(../static/common/barsheet.png) no-repeat 0 -50px;
+          background-size: cover; */
+        }
+
+        .navi-items {
+          display: none;
+
+          position: absolute;
+          z-index: 10;
+          left: 0;
+          right: 0;
+          top: 370px;
+
+          width: 800px;
+          height: 28px;
+          margin: 0 auto;
+
+          background: url(../static/common/barsheet.png) no-repeat -0 0;
+          background-size: cover;
+        }
+        .navi-items ul {
+          display: flex;
+          flex-wrap: wrap;
+
+          width: 100%;
+          margin: 0;
+          padding:7px 10px 0;
+        }
+
+        .navi-items ul li {
+          list-style: none;
+          color:#fff;
+          padding-right: 10px;
+        }
+
+        .modalContainer {
+          display: none;
+          
+          position: fixed;
+          z-index: 999;
+          top:0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: rgba(1,1,1,0.6);
+        }
+
+        .modal.getItem {
+          position: relative;
+          width: 490px;
+          height: 250px;
+          margin: 10% auto;
+          padding: 10px 30px 30px;
+          text-align: center;
+          
+          box-sizing: border-box;
+          overflow: hidden;
+        } 
+
+        .getItem h1, .getItem .item_desc {
+          color: #fff;
+          margin: 15px 0;
+        }
+        .modal .item {
+          width: 50px;
+          height: 50px;
+          margin: 0 auto;
+          
+          background: url(../static/item1.png) no-repeat 0 0;
+          background-size: cover;
+          overflow: hidden;
+        }
+
+
+
+        .inventory {
+          display: none;
+          position: absolute;
+
+          z-index: 111;
+          top: 50px;
+          right: 233px;
+          width: 213px;
+          height: 252px;
+          background: url(../static/inventory.png) no-repeat 0 0;
+          background-size: cover;
+          overflow: hidden;
+        }
+       
+
+        @keyframes animate {
+          0% {
+            background-position: -500%;
+          }
+          100% {
+            background-position: 500%;
+          }
+        }
       </style>
   </head>
+
   <body>
-    <div>
-      <canvas id ="canvas" width="800" height="400" style="position: absolute; width:800px; height:400px;"></canvas>
-      <canvas id ="foreground" width="800" height="400" style="position: absolute; width:800px; height:400px;"></canvas>
+    <div class="sceneWrapper" id="sceneWrapper">
+      <div class="navi">
+          <div class="navi-info">
+            <p class="user"></p>
+            <p>헌터1</p>
+            <p class="user-life">10</p>
+            <p>득템 <em>100</em></p>
+          </div>
+
+          <div class="navi-game">
+            <p>score : <em>100</em></p>
+          </div>
+
+          <div class="navi-button">
+              <button id="menu-modal">아이템획득</button>
+          </div>
+      </div>
+
+      <canvas id ="canvas" class="scene" width="800" height="400"></canvas>
+      <canvas id ="foreground" class="scene" width="800" height="400"></canvas>
+     
+      <div class="navi-items">
+          <ul>
+            <li>item1</li>
+            <li>item2</li>
+            <li>item3</li>
+          </ul>
+        </div>
+    </div>
+
+    <div id ="intro" class="scene">
+      <dl class="introTitle">
+        <dt class="title">projectB</dt>
+        <dd><button class="playButton" id="game-start">Play</button></dd>
+      </dl>
+    </div>
+
+    <!-- 모달 컨테이너 -->
+    <div class="modalContainer" id="modalContainer">
+      <div class="modal getItem">
+        <h1>GET 아이템</h1>
+        <p class="item"></p>
+        <p class="item_desc">획득한 아이템 설명</p>
+
+        <button id="button-inventory">보관함 열기</button>
+        <button id="button-goBack">계속하기</button>
+      </div>
+    </div>
+    <!--. 모달 컨테이너 -->
+    <!-- inventory -->
+    <div class="inventory" id="inventory">
     </div>
   </body>
 </html>
