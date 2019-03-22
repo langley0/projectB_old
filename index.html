@@ -288,10 +288,9 @@
       <div class="navi" id="navi">
           <div class="navi-info">
             <p class="user"></p>
-            <p class="user_name">헌터1</p>
+            <!-- <p class="user_name">헌터1</p>
             <p class="user_life">남은 생명치</p>
-            <p class="user_exp">경험치</p>
-            <!-- <p>득템 <em>100</em></p> -->
+            <p class="user_exp">경험치</p> -->
           </div>
 
           <div class="navi-game">
@@ -299,7 +298,9 @@
           </div>
 
           <div class="navi-button">
+              <!-- 테스트용코드. -->
               <button id="menu-modal">아이템획득</button>
+              <button id="menu-inven">보관함</button>
           </div>
       </div>
 
@@ -307,8 +308,20 @@
       <canvas id ="canvas" class="scene" width="800" height="400"></canvas>
       <canvas id ="foreground" class="scene" width="800" height="400"></canvas>
       <!-- Canvas : game scene  -->
+      
+      <!-- battleMode UI -->
+      <div class="battleui">
+        <ul class="skills">
+          <li>Boost Skill</li> 
+          <!-- 부스트 쓸 때까지의 게이지가 필요한데.. 턴제인데..음?? 클릭 카운트로 올리는걸까? -->
+          <li>Defend</li>
+          <li></li>
+        </ul>
+        
+        <button class="battle_start" id="battle_start">battle start</button>
+      </div>
+       <!--./ battleMode UI -->
 
-      <button class="battle_start" id="battle_start">battle start</button>
     </div>
 
     <!-- intro -->
