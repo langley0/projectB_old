@@ -18,6 +18,11 @@ export default {
         BEGIN: 1,
         MAIN: 2,
         END: 3,
+    },
+    
+    GameState: {
+        NORMAL: 1,
+        BATTLE: 2,
     }
 }
 

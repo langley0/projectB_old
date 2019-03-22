@@ -531,7 +531,6 @@ export default class Game {
                 // ui 를 화면에 그린다
                 const uiimg = new Image();
                 uiimg.src = "static/battleui.png";
-                // uiimg.src = "static/battle-turn2.png";
                 
                 uiimg.onload = () => {
                     const canvas = document.getElementById("foreground");

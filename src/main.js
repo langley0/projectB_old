@@ -28,11 +28,11 @@ function initApp() {
   },false);
 
 
-
   // index.html 내 ui 테스트용 코드입니다. - 해림
   $('#menu-modal').click(function (){
     var modal = document.getElementById('modalContainer');
     modal.style.display = 'block';
+
     var closeBtn = document.getElementById('button-goBack');
     var inventoryBtn = document.getElementById('button-inventory');
 
@@ -72,9 +72,9 @@ function initApp() {
     battlestart.style.opacity = 1;
   }, 6000);
   // 소스 분리할 것이기때문에 지금은 clearTimeout 생략
-  var flag = false;
 
   
+  var flag = false;
   battlestart.addEventListener('click', function() {
 
     if( flag ) {
