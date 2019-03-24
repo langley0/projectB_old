@@ -310,8 +310,9 @@ export default class Game {
 
                 // 플레이어를 선언한다
                 const player = new Player(1, username, "");
-                player.setSprite(this.sprites["test3"]);
+                player.setSprite(this.sprites["test5"]);
                 player.buildMesh();
+                player.mesh.scale.set(0.5, 0.5, 0.5);
                 player.onRequestPath((x, y) => {
                     const path = this.findPath(player, x, y);
                     return path;

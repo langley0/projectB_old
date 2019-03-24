@@ -1,0 +1,21 @@
+{
+	"id": "test5",
+	"width": 64,
+	"height": 96,
+	"animations": {
+		"idle_right": {
+			"length": 6,
+			"row": 0
+		},
+		"idle_up": {
+			"length": 6,
+			"row": 1
+        },
+        "idle_down": {
+			"length": 6,
+			"row": 0
+		}
+	},
+	"offset_x": 0,
+	"offset_y": -23
+}
