@@ -29,7 +29,7 @@ EntityFactory.builders[Types.Entities.CHEST] = function(id) {
 
 EntityFactory.builders[Types.Entities.FIRE] = function(id) {
     const prop= new Prop(id, Types.Entities.FIRE);
-    prop.attachPointLight(0xffc0a0, 1);
+    prop.attachPointLight(0xffc0a0, 0.5);
     return prop;
 };
 

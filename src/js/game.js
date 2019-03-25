@@ -7,12 +7,8 @@ import EntityFactory from './entityfactory';
 import GLTFLoader from './gltfloader';
 import Types from '../share/gametypes';
 
-import OrbitControls  from 'three-orbitcontrols';
 import Chest from './chest';
-import Cutscene from './cutscene';
-
 import ThreeUI from '../lib/three-ui/ThreeUI';
-import GameWorld from './gameworld';
 
 import SpriteData from './sprites';
 import '../lib/bokehshader2';
@@ -34,7 +30,7 @@ export default class Game {
 
         const camera = new THREE.PerspectiveCamera( 20, canvas.width / canvas.height, 1, 3000 );
         /*const aspect = canvas.width / canvas.height;
-        const frustumSize = 250;
+        const frustumSize = 100;
         const camera = new THREE.OrthographicCamera( frustumSize * aspect / - 2, frustumSize * aspect / 2, frustumSize / 2, frustumSize / - 2, 1, 1000 );
         camera.position.set( frustumSize, frustumSize, frustumSize );*/
 
@@ -121,7 +117,7 @@ export default class Game {
             // 카메라가 플레이어를 따라다니도록 한다
             let lookTarget;
             let cameraPos;
-            const reltiveOffset = new THREE.Vector3(0, 150, 500);
+            const reltiveOffset = new THREE.Vector3(-200, 150, 200);
             if (this.battlemode) {
                 // 전투에 참여하는 캐릭터들의 중간값을 본다.
 
@@ -190,6 +186,7 @@ export default class Game {
             }
         }
 
+
         this.updateCamera();
 
         if (this.postprocessing.enabled) {
@@ -249,6 +246,57 @@ export default class Game {
         this.isStopped = true;
     }
 
+    enterZone(zoneName) {
+        if (this.currentZone) {
+            // 존에서 빠져나간다.
+            while (this.scene.children.length > 0) {
+                this.scene.remove(this.scene.children[0]);
+            }
+            // entitiy 들을 모두 제거한다 (올바르게 제거할 방법이 ??)
+            this.entities = {};
+        }
+
+        this.map.initByName(zoneName);
+        this.currentZone = zoneName;
+
+        this.initEntityGrid();
+        Entity.setGridSize(this.map.tilesize);
+
+        // 렌더링 신 초기화
+        this.scene.add(this.map.mesh);
+
+        const ambient = new THREE.AmbientLight(0xffffff, 0.5);
+        this.scene.add( ambient );
+
+        // 프랍을 배치한다
+        let id = 100;
+        for(const propData of this.map.props) {
+            const propEntity = EntityFactory.createEntity(propData.kind, id++, "");
+            // 배치할 좌표를 계산한다
+            propEntity.setGridPosition(propData.x, propData.y);
+            
+            if (propEntity instanceof Chest) {
+                propEntity.model =this.model; 
+                propEntity.mesh = propEntity.model.scene.clone();
+                propEntity.mesh.scale.set(5, 5, 5);
+                propEntity.mesh.rotation.y = Math.PI;
+            }
+            
+            this.addEntity(propEntity);
+            this.scene.add(propEntity.mesh);
+        }
+
+        this.pathfinder = new Pathfinder(this.map.width, this.map.height)
+
+        // 플레이어를 배치한다. 
+        // TODO : 플레이어의 시작위치를 맵에 적어놔야 한다
+        this.player.setGridPosition(3, 3);
+        this.player.idle();
+        this.addEntity(this.player);
+        this.scene.add(this.player.mesh);
+    }
+
+
     run(username) {
         // 리소스를 로딩하고 끝날때까지 기다린다.
         this.loadSprites();
@@ -260,67 +308,11 @@ export default class Game {
             if (this.map.isLoaded && this.isSpritesLoaded() && this.model) {
                 clearInterval(wait);
 
-                // 리소스 로딩이 끝나면 서버에 접속한다
-                // 접속이 완료되면 핸들러들을 연결하고 게임을 시작한다
-                // TODO : 서버 접속을 만들어야 한다
-
-                // 월드를 생성한다
-                // TODO : terrain 생성코드를 나중에 여기로 옮겨와야 한다
-                while (this.scene.children.length > 0) {
-                    this.scene.remove(this.scene.children[0]);
-                }
-
-                const world = new GameWorld(this, this.map);
-                this.world = world;
-                
-                    
-                // 맵을 초기화한다
-                // TODO: 맵을 여기서 초기화하도록 코드를 옮겨야 한다
-                this.scene.add(world.terrain);
-                this.scene.add(world.model);
-                this.initEntityGrid();
-                Entity.setGridSize(this.map.tilesize);
-
-                // 월드 라이트를 추가
-                // TODO : map에 따라서 라이트를 바꾸어야 한다
-                // 헤미스피어를 붙인다
-                /*const hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 1 );
-                hemiLight.color.setHSL( 0.6, 1, 0.6 );
-                hemiLight.groundColor.setHSL( 0.095, 1, 0.75 );
-                hemiLight.position.set( 0, 50, 0 );
-                this.scene.add( hemiLight );*/
-                const ambient = new THREE.AmbientLight(0xffffff, 1.5);
-                this.scene.add( ambient );
-                
-                // 프랍을 배치한다
-                let id = 2;
-                for(const propData of this.map.props) {
-                    const propEntity = EntityFactory.createEntity(propData.kind, id++, "");
-                    // 배치할 좌표를 계산한다
-                    propEntity.setGridPosition(propData.x, propData.y);
-                    
-                    if (propEntity instanceof Chest) {
-                        propEntity.model =this.model; 
-                        propEntity.mesh = propEntity.model.scene.clone();
-                        propEntity.mesh.scale.set(5, 5, 5);
-                        propEntity.mesh.rotation.y = Math.PI;
-                    }
-                    
-                    this.addEntity(propEntity);
-                    this.scene.add(propEntity.mesh);
-                }
-
-                // 몬스터를 배치한다.
-                
-
-
-                this.pathfinder = new Pathfinder(this.map.width, this.map.height)
-
-
                 // 플레이어를 선언한다
                 const player = new Player(1, username, "");
-                player.setSprite(this.sprites["test3"]);
+                player.setSprite(this.sprites["test5"]);
                 player.buildMesh();
+                player.mesh.scale.set(0.5, 0.5, 0.5);
                 player.onRequestPath((x, y) => {
                     const path = this.findPath(player, x, y);
                     return path;
@@ -349,24 +341,18 @@ export default class Game {
                                 }
                             }, 10);
                         }
+                    } 
+
+                    if (this.map.isPortal(x, y)) {
+                        // 워프 시킨다
+                        const dest = this.map.getPortalDestination(x, y);
+                        this.enterZone(dest);
                     }
                 });
 
-                // TODO : 화면에 배치하고 보이지 않게 하여야 한다
-                player.setGridPosition(3, 3);
-                player.idle();
-                this.addEntity(player);
-                this.unregisterEntityPosition(player); // 플레이어를 엔티티에 포함시키지않기위한 특수처리
                 this.player = player;
 
-                // 게임 씬 페이즈를 선언한다.
-                // 등장컷신 -> 전투 -> (승리컷신) -> 탐험 -> 퇴장컷신 . 순으로 만들어진다.
-                // 등장 컷신 
-                this.nextPhase = new Cutscene(this, "enter");
-
-                // 월드에 추가를 한다
-                // TODO : entity 를 일괄로 처리할 수 있는 장치가 필요하다?>
-                this.scene.add(this.player.mesh);
+                this.enterZone('home');
                 this.start();
             }
         }, 100);
@@ -474,10 +460,11 @@ export default class Game {
         return null;
     }
 
-    getGridPosition(intersect, boundingbox) {
+    getGridPosition(intersect) {
+        const offset = this.map.offset;
         const ts = this.map.tilesize;
-        const xIndex = Math.floor((intersect.x - boundingbox.min.x) / ts );
-        const yIndex = Math.floor((intersect.z - boundingbox.min.y) / ts );
+        const xIndex = Math.floor((intersect.x - offset.x) / ts );
+        const yIndex = Math.floor((intersect.z - offset.y) / ts );
         
         return { x: xIndex, y: yIndex };
     }
@@ -507,7 +494,7 @@ export default class Game {
         const intersects = raycaster.intersectObjects(this.scene.children);
         for ( const inter of intersects) {
             // TODO: 함수를 world 쪽에 만들어두어야 한다
-            const pos = this.getGridPosition(inter.point, this.world.terrain.geometry.boundingBox);
+            const pos = this.getGridPosition(inter.point);
 
             // 이제 여기서 무엇을 클릭했는지 조사한다
             const entity = this.getEntityAt(pos.x, pos.y);
@@ -526,12 +513,11 @@ export default class Game {
         if (key === 66) {
             // 전투모드를 활성화한다
             this.battlemode = !this.battlemode;
-            
             if (this.battlemode) {
                 // ui 를 화면에 그린다
                 const uiimg = new Image();
-                uiimg.src = "static/battleui.png";
-                
+                // uiimg.src = "static/battleui.png";
+                uiimg.src = "static/battle-turn2.png";
                 uiimg.onload = () => {
                     const canvas = document.getElementById("foreground");
                     const ctx = canvas.getContext('2d');
@@ -619,6 +605,39 @@ export default class Game {
 
                     this.battle_asset = null;
                 }
+            }
+        // } else if (key === 73) {
+        //    // ui 를 화면에 그린다
+        //    const uiimg = new Image();
+        //    uiimg.src = "static/inventory.png";
+        //    uiimg.onload = () => {
+        //        const canvas = document.getElementById("foreground");
+        //        const ctx = canvas.getContext('2d');
+        //        ctx.drawImage(uiimg, 500, 50);
+        //    };
+        // } else {
+        //     const canvas = document.getElementById("foreground");
+        //     const ctx = canvas.getContext('2d');
+        //     ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+        if (key === 67) {
+            // 카메라 토글
+            this.isometric = !this.isometric;
+            if (this.isometric) {
+                
+                const aspect = canvas.width / canvas.height;
+                const frustumSize = 100;
+                const camera = new THREE.OrthographicCamera( frustumSize * aspect / - 2, frustumSize * aspect / 2, frustumSize / 2, frustumSize / - 2, 1, 1000 );
+                camera.position.set( frustumSize, frustumSize, frustumSize );
+
+                this.postprocessing.enabled = false;
+                
+
+                this.camera = camera;
+            } else {
+                const camera = new THREE.PerspectiveCamera( 20, canvas.width / canvas.height, 1, 3000 );
+                this.camera = camera;
+                this.postprocessing.enabled = true;
             }
         }
     }

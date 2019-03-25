@@ -280,6 +280,8 @@ export default class Character extends Entity{
                 y: -this.sprite.data.offset_y * scale || 0,
                 z: 0,
             }
+            
+            this.mesh.renderOrder = 1;
         }
     }
 
