@@ -83,6 +83,7 @@ export default class Map {
 
     isPortal(x, y) {
         const index = this.GridPositionToTileIndex(x, y);
+        console.log(x, y, index, this.portals);
         return (index in this.portals);
     }
 

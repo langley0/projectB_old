@@ -37,8 +37,8 @@ export default class Character extends Entity{
         this.flipSpriteY = false;
 
         this.moveSpeed = 120;
-        this.walkSpeed = 100;
-        this.idleSpeed = 450;
+        this.walkSpeed = 75;
+        this.idleSpeed = 200;
 
       
         // combat 
@@ -76,6 +76,9 @@ export default class Character extends Entity{
             if(name.substr(0, 3) === "atk") {
                 this.currentAnimation.reset();
             }
+
+            console.log(this.currentAnimation);
+
             this.currentAnimation.setSpeed(speed);
             this.currentAnimation.setCount(count ? count : 0, onEndCount || function() {
                 this.idle();
@@ -92,8 +95,22 @@ export default class Character extends Entity{
             this.flipSpriteY = false;
     
             if(_.indexOf(oriented, animation) >= 0) {
-                animation += "_" + (o === Types.Orientations.LEFT ? "right" : getOrientationAsString(o));
-                this.flipSpriteX = (this.orientation === Types.Orientations.LEFT) ? true : false;
+                let surffix;
+                if (o === Types.Orientations.RIGHT) {
+                    surffix = "up";
+                    this.flipSpriteX = true;      
+                } else if (o === Types.Orientations.DOWN) {
+                    surffix = "left";
+                    this.flipSpriteX = true;     
+                } else {
+                    surffix = getOrientationAsString(o);
+                    this.flipSpriteX = false; 
+                }
+
+                animation += "_" + surffix;
+
+                //animation += "_" + (o === Types.Orientations.LEFT ? "right" : getOrientationAsString(o));
+                //this.flipSpriteX = (this.orientation === Types.Orientations.LEFT) ? true : false;
             }
 
             this.setAnimation(animation, speed, count, onEndCount);

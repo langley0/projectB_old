@@ -1,19 +1,23 @@
 {
 	"id": "test5",
 	"width": 64,
-	"height": 96,
+	"height": 100,
 	"animations": {
-		"idle_right": {
+		"idle_left": {
 			"length": 6,
-			"row": 0
+            "row": 0
 		},
 		"idle_up": {
 			"length": 6,
-			"row": 1
+            "row": 1
         },
-        "idle_down": {
-			"length": 6,
-			"row": 0
+        "walk_left": {
+			"length": 8,
+            "row": 2
+        },
+        "walk_up": {
+			"length": 8,
+            "row": 3
 		}
 	},
 	"offset_x": 0,
