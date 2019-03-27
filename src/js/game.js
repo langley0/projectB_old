@@ -472,12 +472,17 @@ export default class Game {
     click(x, y) {
         if (this.ui) {
             const result = this.ui.clickHandler(x, y);
+            
+            console.log('result' + result);
+
             if (result) {
                 return;
             }
         }
 
         if (this.phase) {
+            console.log('this.phase' + this.phase);
+            
             this.phase.click(x, y);
         }
 
@@ -515,9 +520,10 @@ export default class Game {
             this.battlemode = !this.battlemode;
             if (this.battlemode) {
                 // ui 를 화면에 그린다
+                console.log('66');
+
                 const uiimg = new Image();
-                // uiimg.src = "static/battleui.png";
-                uiimg.src = "static/battle-turn2.png";
+                uiimg.src = "static/battleui.png";
                 uiimg.onload = () => {
                     const canvas = document.getElementById("foreground");
                     const ctx = canvas.getContext('2d');
@@ -606,19 +612,6 @@ export default class Game {
                     this.battle_asset = null;
                 }
             }
-        // } else if (key === 73) {
-        //    // ui 를 화면에 그린다
-        //    const uiimg = new Image();
-        //    uiimg.src = "static/inventory.png";
-        //    uiimg.onload = () => {
-        //        const canvas = document.getElementById("foreground");
-        //        const ctx = canvas.getContext('2d');
-        //        ctx.drawImage(uiimg, 500, 50);
-        //    };
-        // } else {
-        //     const canvas = document.getElementById("foreground");
-        //     const ctx = canvas.getContext('2d');
-        //     ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
         if (key === 67) {
             // 카메라 토글

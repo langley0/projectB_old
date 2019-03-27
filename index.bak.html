@@ -68,9 +68,46 @@
           z-index: 111;
         }
 
+        .skillwindow {
+          display: flex;
+          flex-wrap: wrap;
+        }
+
+        /* .battle_attack {
+          position: absolute;
+          bottom: -200px;
+          right: 10px;
+
+          z-index: 111;
+
+          width: 77.6px;
+          height: 91.6px;
+          background: url(../static/common/battlebtns.png) no-repeat 0 -79px;
+          background-size: cover;
+
+          text-indent: -9999px;
+          opacity: 0;
+          transition: all 0.5s linear;
+        }
+
+        .battle_defense {
+          position: absolute;
+          bottom: -200px;
+          right: 90px;
+
+          z-index: 111;
+
+          width: 77.6px;
+          height: 91.6px;
+          background: url(../static/common/battlebtns.png) no-repeat 0 18px;
+          background-size: cover;
+
+          text-indent: -9999px;
+          opacity: 0;
+          transition: all 0.3s linear;
+        } */
 
         .intro {
-          display: block;
           margin: 15px auto;
           text-align: center;
         }
@@ -244,7 +281,7 @@
           <div class="navi-button">
               <!-- 테스트용코드. -->
               <button id="menu-modal">아이템획득</button>
-              <!-- <button id="menu-inven">보관함</button> -->
+              <button id="menu-inven">보관함</button>
           </div>
       </div>
 
@@ -253,26 +290,20 @@
       <canvas id ="foreground" class="scene" width="800" height="400"></canvas>
       <!-- Canvas : game scene  -->
       
-      <div>
-        <div class="menu intro">
-          <button>move</button>
-          <button>action</button>
-          <button>status</button>
-          <button>cancel</button>
-        </div>
+      <!-- battleMode UI -->
+      <button class="battle_attack" id="battle_attack">battle start</button>
+      <button class="battle_defense" id="battle_defense">battle start</button>
+       <!--./ battleMode UI -->
 
-        <div class="menu _battle __begin">
-          <button>attack</button>
-          <button>end turn</button>
-          <button>cancel</button>
-        </div>
-
-        <div class="menu _">
-          <button>battle</button>
-        </div>
-      </div>
     </div>
 
+    <!-- intro
+    <div id ="intro" class="scene">
+      <dl class="introTitle">
+        <dt class="title">projectB</dt>
+      </dl>
+    </div>
+ -->
     <!-- 모달 컨테이너 -->
     <div class="modalContainer" id="modalContainer">
       <div class="modal getItem">
@@ -296,6 +327,7 @@
         <dd class="desc"></dd>
       </dl>
     </div>
+    
 
     <div class="intro"><button class="playButton" id="game-start">Play</button></div>
   </body>

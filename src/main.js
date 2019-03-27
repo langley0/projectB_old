@@ -29,6 +29,7 @@ function initApp() {
 
 
   // index.html 내 ui 테스트용 코드입니다. - 해림
+  // TODO : 이후 인벤토리는 클래스로 분리해야함.
   function showInventory(){
     var inventory = document.getElementById('inventory');
     inventory.style.display="block";
@@ -52,12 +53,13 @@ function initApp() {
         modal.style.display = "none";
       });
   
-      inventoryBtn.addEventListener('click', function() {
-        modal.style.display = "none";
-        showInventory();
-      });
-    }
+      // inventoryBtn.addEventListener('click', function() {
+      //   modal.style.display = "none";
+      //   showInventory();
 
+
+      // });
+    }
   }
 
 
@@ -72,14 +74,17 @@ function initApp() {
 
   
   // 플레이 버튼을 누르면 시작하게 해야 하지만... 일단은 그냥하자
-  app.start("TEST");
+  // $("#game-start").click(function(){
+    app.start("TEST");
+  // });
 
   var navi = document.getElementById('navi');
   navi.style.opacity = 1;
   var stage = document.getElementById('stageInfo');
-  // battle turn test
-  var battlestart = document.getElementById('battle_start');
 
+  // var battlestart = document.getElementById('battle_attack');
+  // var battledefense = document.getElementById('battle_defense');
+  
 
   var timer = setTimeout(() => {
     stage.style.opacity = 1;
@@ -89,34 +94,35 @@ function initApp() {
     stage.style.opacity = 0;
     stage.style.display = 'none';
     battlestart.style.bottom = '10px';
+    battledefense.style.bottom = '10px';
     battlestart.style.opacity = 1;
+    battledefense.style.opacity = 1;
   }, 6000);
   // 소스 분리할 것이기때문에 지금은 clearTimeout 생략
 
+  // var flag = false;
+  // battlestart.addEventListener('click', function() {
+  //   if( flag ) {
+  //     const canvas = document.getElementById("foreground");
+  //     const ctx = canvas.getContext('2d');
+  //     ctx.clearRect(0, 0, canvas.width, canvas.height);
+  //     flag = !flag;
 
-  var flag = false;
-  battlestart.addEventListener('click', function() {
-    if( flag ) {
-      const canvas = document.getElementById("foreground");
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      flag = !flag;
+  //     return false;
+  //   }
 
-      return false;
-    }
+  //   const uiimg = new Image();
+  //   var n = Math.round(Math.random()+1);
 
-    const uiimg = new Image();
-    var n = Math.round(Math.random()+1);
+  //   uiimg.src = "static/battle-turn"+ n +".png";
+  //   uiimg.onload = () => {
+  //       const canvas = document.getElementById("foreground");
+  //       const ctx = canvas.getContext('2d');
+  //       ctx.drawImage(uiimg, 0, 0);
+  //   };
 
-    uiimg.src = "static/battle-turn"+ n +".png";
-    uiimg.onload = () => {
-        const canvas = document.getElementById("foreground");
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(uiimg, 0, 0);
-    };
-
-    flag = !flag;
-  });
+  //   flag = !flag;
+  // });
 }
 
 initApp();
