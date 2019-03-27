@@ -225,6 +225,23 @@
           font-weight: bold;
           font-size: 25px;
        }
+
+       .menu {
+          position: absolute;
+          top: 0;
+          right: 0;
+          left: 0;
+          z-index: 1111;
+          width: 100px;
+          height: 100px;
+          background: #fff;
+          margin: 0 auto;
+       }
+
+       .menu .buttonset {
+         width: inherit;
+         /* display: none; */
+       }
       </style>
   </head>
 
@@ -253,24 +270,20 @@
       <canvas id ="foreground" class="scene" width="800" height="400"></canvas>
       <!-- Canvas : game scene  -->
       
-      <div>
-        <div class="menu intro">
-          <button>move</button>
-          <button>action</button>
-          <button>status</button>
-          <button>cancel</button>
-        </div>
-
-        <div class="menu _battle __begin">
-          <button>attack</button>
-          <button>end turn</button>
-          <button>cancel</button>
-        </div>
-
-        <div class="menu _">
-          <button>battle</button>
-        </div>
+      <div class="menu" id="MENU">
+          <div class="buttonset __player" id="playermenu">
+            <button>move</button>
+            <button>action</button>
+            <button>status</button>
+            <button>cancel</button>
+          </div>
+          <div class="buttonset __battle" id="battlemenu">
+            <button>attack</button>
+            <button>end turn</button>
+            <button>cancel</button>
+          </div>
       </div>
+      
     </div>
 
     <!-- 모달 컨테이너 -->

@@ -15,19 +15,31 @@ export default class App {
     */
     init() {
         this.currentStage = 1;
-        this.playMode = Types.GameState.NORMAL;
-        // this.playMode = Types.GameState.BATTLE;
+        // this.playMode = Types.GameState.NORMAL;
     }
 
     setUI(playMode) {
         console.log('setUI --- ' + playMode)
         // navi - 영역 버튼 교체
+        // const menu = document.getElementById('menu');
+        // menu.childNodes.opacity= 0;
+
+        if( playMode === Types.GameState.NORMAL ) {
+            $('#playermenu').style.opacity = 1;
+            $('#battlemenu').style.opacity = 0;
+
+        } else {
+            $('#battlemenu').style.opacity = 1;
+            $('#playermenu').style.opacity = 0;
+
+        }
     }
 
 
     // #orgs
     setGame(game) {
         this.game = game;
+        this.setUI(Types.GameState.NORMAL);
     }
 
     center() {
